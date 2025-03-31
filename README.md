@@ -6,6 +6,8 @@
   <strong>An interactive CLI tool for selecting and bundling code into a single, LLM-ready output file.</strong>
 </p>
 
+![codegrab-demo](https://github.com/user-attachments/assets/5cb7be38-16c9-4613-9f56-cf89e0a9175e)
+
 ## ❓ Why?
 
 When working with LLMs, sharing code context is essential for getting accurate responses. However,
