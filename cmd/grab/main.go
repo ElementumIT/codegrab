@@ -14,6 +14,7 @@ import (
 	"github.com/epilande/codegrab/internal/model"
 	"github.com/epilande/codegrab/internal/ui"
 	"github.com/epilande/codegrab/internal/ui/themes"
+	"github.com/epilande/codegrab/internal/utils"
 )
 
 type stringSliceFlag []string
@@ -32,6 +33,7 @@ func main() {
 
 	var globPatterns stringSliceFlag
 	var showHelp bool
+	var showVersion bool
 	var nonInteractive bool
 	var outputPath string
 	var useTempFile bool
@@ -40,6 +42,9 @@ func main() {
 
 	flag.BoolVar(&showHelp, "help", false, "Display help information")
 	flag.BoolVar(&showHelp, "h", false, "Display help information (shorthand)")
+
+	flag.BoolVar(&showVersion, "version", false, "Display version information")
+	flag.BoolVar(&showVersion, "v", false, "Display version information (shorthand)")
 
 	flag.BoolVar(&nonInteractive, "non-interactive", false, "Run in non-interactive mode")
 	flag.BoolVar(&nonInteractive, "n", false, "Run in non-interactive mode (shorthand)")
@@ -68,6 +73,11 @@ func main() {
 		fmt.Println(ui.UsageText)
 		fmt.Println()
 		fmt.Println(ui.HelpText)
+		os.Exit(0)
+	}
+
+	if showVersion {
+		fmt.Println(utils.VersionInfo())
 		os.Exit(0)
 	}
 
