@@ -6,7 +6,7 @@
   <strong>An interactive CLI tool for selecting and bundling code into a single, LLM-ready output file.</strong>
 </p>
 
-![codegrab-demo](https://github.com/user-attachments/assets/5cb7be38-16c9-4613-9f56-cf89e0a9175e)
+![codegrab-demo](https://github.com/user-attachments/assets/77b8984e-913f-4646-a1f7-e4d16aa8f7b5)
 
 ## ❓ Why?
 
@@ -59,6 +59,8 @@ Then move the binary to your `PATH`
 4. Press <kbd>g</kbd> to generate output file or <kbd>y</kbd> to copy contents to clipboard
 
 CodeGrab will generate `codegrab-output.md` in your current working directory (on macOS this file is automatically copied to your clipboard), which you can immediately send to an AI assistant for better context-aware coding assistance.
+
+https://github.com/user-attachments/assets/48f245f4-695d-4cea-8fc0-4b0158bb46a5
 
 ## 🎮 Usage
 
