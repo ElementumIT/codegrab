@@ -33,3 +33,19 @@ archives:
         formats: [zip]
 checksum:
   name_template: "checksums.txt"
+brews:
+  - name: "{{ .ProjectName }}"
+    homepage: "https://github.com/epilande/codegrab"
+    description: "An interactive CLI tool for selecting and bundling code into a single, LLM-ready output file"
+    license: "MIT"
+    repository:
+      owner: epilande
+      name: homebrew-tap
+      branch: main
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    test: |
+      system "#{bin}/grab --version"
+    install: |
+      bin.install "grab"
