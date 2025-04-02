@@ -32,11 +32,24 @@ to your clipboard, ready for LLM processing.
 
 ## 📦 Installation
 
+### Homebrew
+
+```sh
+brew tap epilande/tap
+brew install codegrab
+```
+
+### Go Install
+
 ```sh
 go install github.com/epilande/codegrab/cmd/grab@latest
 ```
 
-Or build from source:
+### Binary Download
+
+Download the [latest release](https://github.com/epilande/codegrab/releases/latest) for your platform.
+
+### Build from Source
 
 ```sh
 git clone https://github.com/epilande/codegrab
@@ -79,6 +92,7 @@ grab [options] [directory]
 | Option                  | Description                                                                             |
 | :---------------------- | :-------------------------------------------------------------------------------------- |
 | `-h, --help`            | Display help information                                                                |
+| `-v, --version`         | Display version information                                                             |
 | `-n, --non-interactive` | Run in non-interactive mode (grabs all files)                                           |
 | `-o, --output file`     | Output file path (default: `./codegrab-output.<format>`)                                |
 | `-t, --temp`            | Use system temporary directory for output file                                          |
