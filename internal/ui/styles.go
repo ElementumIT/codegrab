@@ -24,23 +24,20 @@ func GetStyleFormatIndicator() lipgloss.Style {
 func GetStyleSuccess() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(themes.CurrentTheme.Colors().Success).
-		Bold(true).
-		Padding(0, 1)
+		Bold(true)
 }
 
 // GetStyleError returns the error style using the current theme
 func GetStyleError() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(themes.CurrentTheme.Colors().Error).
-		Bold(true).
-		Padding(0, 1)
+		Bold(true)
 }
 
 // GetStyleHelp returns the help style using the current theme
 func GetStyleHelp() lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(themes.CurrentTheme.Colors().Muted).
-		Padding(0, 1)
+		Foreground(themes.CurrentTheme.Colors().Muted)
 }
 
 // GetStyleBorderedViewport returns the bordered viewport style using the current theme
@@ -54,6 +51,20 @@ func GetStyleBorderedViewport() lipgloss.Style {
 func GetStyleSearchCount() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(themes.CurrentTheme.Colors().Muted)
+}
+
+// GetStyleWarning returns the warning style using the current theme
+func GetStyleWarning() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(themes.CurrentTheme.Colors().Warning).
+		Bold(true)
+}
+
+// GetStyleInfo returns the info style using the current theme
+func GetStyleInfo() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(themes.CurrentTheme.Colors().Info).
+		Bold(false)
 }
 
 // StyleCheckBox returns a styled checkbox based on the current theme

@@ -81,19 +81,52 @@ func (m Model) renderFooter() string {
 		return ""
 	}
 
-	var sb strings.Builder
+	var leftParts []string
+	var rightParts []string
+
+	// Left side: Status/Error/Help
 	if m.isSearching {
-		searchHelp := "Next: ctrl+n | Previous: ctrl+p | Select: tab | Exit: esc"
-		sb.WriteString(ui.GetStyleHelp().Render(searchHelp))
-	} else if m.successMsg != "" {
-		sb.WriteString(ui.GetStyleSuccess().Render(m.successMsg))
+		searchHelp := "Next: ctrl+n | Prev: ctrl+p | Select: tab | Exit: esc"
+		leftParts = append(leftParts, ui.GetStyleHelp().Render(searchHelp))
 	} else if m.err != nil {
-		sb.WriteString(ui.GetStyleError().Render(m.err.Error()))
+		leftParts = append(leftParts, ui.GetStyleError().Render(m.err.Error()))
+	} else if m.successMsg != "" {
+		leftParts = append(leftParts, ui.GetStyleSuccess().Render(m.successMsg))
 	} else {
 		helpText := "Press '?' for help | Select: space | Generate: g | Copy: y"
-		sb.WriteString(ui.GetStyleHelp().Render(helpText))
+		leftParts = append(leftParts, ui.GetStyleHelp().Render(helpText))
 	}
-	return sb.String()
+
+	// Right side: Warn/Redaction status
+	redactionStatus := ""
+	if m.warningMsg != "" {
+		rightParts = append(rightParts, ui.GetStyleWarning().Render(m.warningMsg))
+	} else if m.redactSecrets {
+		redactionStatus = ui.GetStyleInfo().Render("🛡️ Redacting")
+	} else {
+		redactionStatus = ui.GetStyleWarning().Render("⚠️ NOT Redacting")
+	}
+	rightParts = append(rightParts, redactionStatus)
+
+	leftContent := lipgloss.JoinHorizontal(lipgloss.Top, leftParts...)
+	rightContent := lipgloss.JoinHorizontal(lipgloss.Top, rightParts...)
+
+	leftWidth := lipgloss.Width(leftContent)
+	rightWidth := lipgloss.Width(rightContent)
+	availableWidth := m.width - 2
+
+	spacing := availableWidth - leftWidth - rightWidth
+	if spacing < 1 {
+		spacing = 1
+	}
+
+	footer := lipgloss.JoinHorizontal(
+		lipgloss.Bottom,
+		leftContent,
+		lipgloss.NewStyle().Width(spacing).Render(""),
+		rightContent,
+	)
+	return lipgloss.NewStyle().Padding(0, 1).Render(footer)
 }
 
 // refreshViewportContent regenerates the lines for our displayNodes, highlights

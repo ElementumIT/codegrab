@@ -39,6 +39,7 @@ func main() {
 	var useTempFile bool
 	var themeName string
 	var formatName string
+	var skipRedaction bool
 
 	flag.BoolVar(&showHelp, "help", false, "Display help information")
 	flag.BoolVar(&showHelp, "h", false, "Display help information (shorthand)")
@@ -66,6 +67,9 @@ func main() {
 	formatUsage := fmt.Sprintf("Output format (available: %s)", availableFormats)
 	flag.StringVar(&formatName, "format", "markdown", formatUsage)
 	flag.StringVar(&formatName, "f", "markdown", formatUsage+" (shorthand)")
+
+	flag.BoolVar(&skipRedaction, "skip-redaction", false, "Skip automatic secret redaction (WARNING: this may expose secrets)")
+	flag.BoolVar(&skipRedaction, "S", false, "Skip automatic secret redaction (shorthand)")
 
 	flag.Parse()
 
@@ -111,14 +115,15 @@ func main() {
 	}
 
 	if nonInteractive {
-		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName)
+		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName, skipRedaction)
 	} else {
 		config := model.Config{
-			RootPath:    root,
-			FilterMgr:   filterMgr,
-			OutputPath:  outputPath,
-			UseTempFile: useTempFile,
-			Format:      formatName,
+			RootPath:      root,
+			FilterMgr:     filterMgr,
+			OutputPath:    outputPath,
+			UseTempFile:   useTempFile,
+			Format:        formatName,
+			SkipRedaction: skipRedaction,
 		}
 
 		m := model.NewModel(config)
@@ -131,7 +136,7 @@ func main() {
 }
 
 // runNonInteractive processes files and generates output without user interaction
-func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool, formatName string) {
+func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool, formatName string, skipRedaction bool) {
 	gitIgnoreMgr, err := filesystem.NewGitIgnoreManager(rootPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading .gitignore: %v\n", err)
@@ -146,6 +151,7 @@ func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, out
 	gen := generator.NewGenerator(rootPath, gitIgnoreMgr, filterMgr, outputPath, useTempFile)
 	format := formats.GetFormat(formatName)
 	gen.SetFormat(format)
+	gen.SetRedactionMode(!skipRedaction)
 
 	// Automatically select all non-directory files
 	selectedFiles := make(map[string]bool)
@@ -157,10 +163,16 @@ func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, out
 
 	gen.SelectedFiles = selectedFiles
 
-	outputFilePath, tokenCount, err := gen.Generate()
+	outputFilePath, tokenCount, secretsFound, err := gen.Generate()
 	if err != nil {
 		log.Fatalf("Error generating output: %v\n", err)
 	}
 
-	fmt.Printf("✅ %s generated: %s (%d tokens)\n", formatName, outputFilePath, tokenCount)
+	fmt.Printf("✅ Generated %s (%d tokens)\n", outputFilePath, tokenCount)
+
+	if secretsFound && skipRedaction {
+		fmt.Fprintf(os.Stderr, "⚠️ WARNING: Potential secrets detected in the output and redaction was skipped!\n")
+	} else if secretsFound && !skipRedaction {
+		fmt.Fprintf(os.Stderr, "ℹ️ INFO: Potential secrets detected and redacted in the output.\n")
+	}
 }
