@@ -125,13 +125,15 @@ func (g *Generator) Generate() (string, int, int, error) {
 			return displayPath, tokenCount, g.lastSecretCount, fmt.Errorf("failed to get absolute path: %w", err)
 		}
 
-		if err := os.WriteFile(absPath, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(outputPath, []byte(content), 0644); err != nil {
 			return displayPath, tokenCount, g.lastSecretCount, fmt.Errorf("failed to write to output file %s: %w", absPath, err)
 		}
+
+		outputPath = absPath
 	}
 
 	if err := utils.CopyFileObject(outputPath); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: clipboard copy failed: %v\n", err)
+		return displayPath, tokenCount, g.lastSecretCount, fmt.Errorf("clipboard copy failed: %w", err)
 	}
 
 	return displayPath, tokenCount, g.lastSecretCount, nil
