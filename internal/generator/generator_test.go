@@ -177,7 +177,7 @@ func TestGenerateString(t *testing.T) {
 		"test.txt": true,
 	}
 
-	content, tokens, err := gen.GenerateString()
+	content, tokens, _, err := gen.GenerateString()
 	if err != nil {
 		t.Fatalf("GenerateString failed: %v", err)
 	}
@@ -194,7 +194,7 @@ func TestGenerateStringWithNoFiles(t *testing.T) {
 	gen := NewGenerator(".", nil, nil, "", false)
 	gen.SetFormat(&mockFormat{})
 
-	_, _, err := gen.GenerateString()
+	_, _, _, err := gen.GenerateString()
 	if err == nil {
 		t.Errorf("Expected error when no files are selected")
 	}
@@ -204,7 +204,7 @@ func TestGenerateStringWithNoFormat(t *testing.T) {
 	gen := NewGenerator(".", nil, nil, "", false)
 	gen.SelectedFiles = map[string]bool{"test.txt": true}
 
-	_, _, err := gen.GenerateString()
+	_, _, _, err := gen.GenerateString()
 	if err == nil {
 		t.Errorf("Expected error when no format is set")
 	}
