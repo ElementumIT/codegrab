@@ -12,9 +12,8 @@ type FileData struct {
 
 // TemplateData is injected into the templates
 type TemplateData struct {
-	Structure    string
-	Files        []FileData
-	SecretsFound bool
+	Structure string
+	Files     []FileData
 }
 
 // Format defines the interface for different output formats

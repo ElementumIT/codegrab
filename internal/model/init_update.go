@@ -16,18 +16,18 @@ type filesLoadedMsg struct {
 }
 
 type outputGeneratedMsg struct {
-	err          error
-	path         string
-	format       string
-	tokenCount   int
-	secretsFound bool
+	err         error
+	path        string
+	format      string
+	tokenCount  int
+	secretCount int
 }
 
 type clipboardCopiedMsg struct {
-	err          error
-	format       string
-	tokenCount   int
-	secretsFound bool
+	err         error
+	format      string
+	tokenCount  int
+	secretCount int
 }
 
 func (m Model) Init() tea.Cmd {
@@ -67,10 +67,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.err = nil
 			m.successMsg = fmt.Sprintf("✅ Generated %s (%d tokens)", msg.path, msg.tokenCount)
-			if msg.secretsFound && !m.redactSecrets {
-				m.warningMsg = "⚠️ Secrets detected and NOT redacted"
-			} else if msg.secretsFound && m.redactSecrets {
-				m.warningMsg = "ℹ️ Secrets detected and redacted"
+			if msg.secretCount > 0 && !m.redactSecrets {
+				m.warningMsg = fmt.Sprintf("⚠️ %d secrets NOT redacted", msg.secretCount)
+			} else if msg.secretCount > 0 && m.redactSecrets {
+				m.warningMsg = fmt.Sprintf("ℹ️ %d secrets redacted", msg.secretCount)
 			} else {
 				m.warningMsg = ""
 			}
@@ -87,10 +87,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.err = nil
 			m.successMsg = fmt.Sprintf("✅ %s copied to clipboard! (%d tokens)", msg.format, msg.tokenCount)
-			if msg.secretsFound && !m.redactSecrets {
-				m.warningMsg = "⚠️ Secrets detected and NOT redacted"
-			} else if msg.secretsFound && m.redactSecrets {
-				m.warningMsg = "ℹ️ Secrets detected and redacted"
+			if msg.secretCount > 0 && !m.redactSecrets {
+				m.warningMsg = fmt.Sprintf("⚠️ %d secrets NOT redacted", msg.secretCount)
+			} else if msg.secretCount > 0 && m.redactSecrets {
+				m.warningMsg = fmt.Sprintf("ℹ️ %d secrets redacted", msg.secretCount)
 			} else {
 				m.warningMsg = ""
 			}
@@ -327,22 +327,22 @@ func (m Model) generateOutput() tea.Cmd {
 	return func() tea.Msg {
 		m.generator.SelectedFiles = m.selected
 		m.generator.DeselectedFiles = m.deselected
-		outPath, tokenCount, secretsFound, err := m.generator.Generate()
+		outPath, tokenCount, secretCount, err := m.generator.Generate()
 		if err != nil {
 			return outputGeneratedMsg{
-				err:          fmt.Errorf("failed to generate output: %w", err),
-				path:         "",
-				tokenCount:   0,
-				format:       m.generator.GetFormatName(),
-				secretsFound: secretsFound,
+				err:         fmt.Errorf("failed to generate output: %w", err),
+				path:        "",
+				tokenCount:  0,
+				format:      m.generator.GetFormatName(),
+				secretCount: secretCount,
 			}
 		}
 		return outputGeneratedMsg{
-			err:          nil,
-			path:         outPath,
-			tokenCount:   tokenCount,
-			format:       m.generator.GetFormatName(),
-			secretsFound: secretsFound,
+			err:         nil,
+			path:        outPath,
+			tokenCount:  tokenCount,
+			format:      m.generator.GetFormatName(),
+			secretCount: secretCount,
 		}
 	}
 }
@@ -353,30 +353,30 @@ func (m Model) copyOutputToClipboard() tea.Cmd {
 		m.generator.SelectedFiles = m.selected
 		m.generator.DeselectedFiles = m.deselected
 
-		content, tokenCount, secretsFound, err := m.generator.GenerateString()
+		content, tokenCount, secretCount, err := m.generator.GenerateString()
 		if err != nil {
 			return clipboardCopiedMsg{
-				err:          err,
-				tokenCount:   0,
-				format:       m.generator.GetFormatName(),
-				secretsFound: secretsFound,
+				err:         err,
+				tokenCount:  0,
+				format:      m.generator.GetFormatName(),
+				secretCount: secretCount,
 			}
 		}
 
 		if err = clipboard.WriteAll(content); err != nil {
 			return clipboardCopiedMsg{
-				err:          fmt.Errorf("failed to copy to clipboard: %w", err),
-				tokenCount:   tokenCount,
-				format:       m.generator.GetFormatName(),
-				secretsFound: secretsFound,
+				err:         fmt.Errorf("failed to copy to clipboard: %w", err),
+				tokenCount:  tokenCount,
+				format:      m.generator.GetFormatName(),
+				secretCount: secretCount,
 			}
 		}
 
 		return clipboardCopiedMsg{
-			err:          nil,
-			tokenCount:   tokenCount,
-			format:       m.generator.GetFormatName(),
-			secretsFound: secretsFound,
+			err:         nil,
+			tokenCount:  tokenCount,
+			format:      m.generator.GetFormatName(),
+			secretCount: secretCount,
 		}
 	}
 }

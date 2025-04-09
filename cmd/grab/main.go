@@ -163,16 +163,16 @@ func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, out
 
 	gen.SelectedFiles = selectedFiles
 
-	outputFilePath, tokenCount, secretsFound, err := gen.Generate()
+	outputFilePath, tokenCount, secretCount, err := gen.Generate()
 	if err != nil {
 		log.Fatalf("Error generating output: %v\n", err)
 	}
 
 	fmt.Printf("✅ Generated %s (%d tokens)\n", outputFilePath, tokenCount)
 
-	if secretsFound && skipRedaction {
-		fmt.Fprintf(os.Stderr, "⚠️ WARNING: Potential secrets detected in the output and redaction was skipped!\n")
-	} else if secretsFound && !skipRedaction {
-		fmt.Fprintf(os.Stderr, "ℹ️ INFO: Potential secrets detected and redacted in the output.\n")
+	if secretCount > 0 && skipRedaction {
+		fmt.Fprintf(os.Stderr, "⚠️ WARNING: %d secrets detected in the output and redaction was skipped!\n", secretCount)
+	} else if secretCount > 0 && !skipRedaction {
+		fmt.Fprintf(os.Stderr, "ℹ️ INFO: %d secrets detected and redacted in the output.\n", secretCount)
 	}
 }

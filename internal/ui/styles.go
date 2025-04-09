@@ -57,7 +57,7 @@ func GetStyleSearchCount() lipgloss.Style {
 func GetStyleWarning() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(themes.CurrentTheme.Colors().Warning).
-		Bold(true)
+		Bold(false)
 }
 
 // GetStyleInfo returns the info style using the current theme

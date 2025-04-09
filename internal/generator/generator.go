@@ -25,7 +25,7 @@ type Generator struct {
 	UseGitIgnore    bool
 	ShowHidden      bool
 	RedactSecrets   bool
-	secretsFound    bool
+	lastSecretCount int
 }
 
 // NewGenerator constructs a generator with default settings
@@ -75,23 +75,23 @@ func (g *Generator) SetRedactionMode(redact bool) {
 }
 
 // Generate creates an output file in the specified format
-func (g *Generator) Generate() (string, int, bool, error) {
+func (g *Generator) Generate() (string, int, int, error) {
 	if len(g.SelectedFiles) == 0 {
-		return "", 0, false, fmt.Errorf("no files selected, skipping generation")
+		return "", 0, 0, fmt.Errorf("no files selected, skipping generation")
 	}
 
 	if g.format == nil {
-		return "", 0, false, fmt.Errorf("no format set, cannot generate output")
+		return "", 0, 0, fmt.Errorf("no format set, cannot generate output")
 	}
 
 	data, err := g.PrepareTemplateData()
 	if err != nil {
-		return "", 0, false, fmt.Errorf("failed to prepare template data: %w", err)
+		return "", 0, g.lastSecretCount, fmt.Errorf("failed to prepare template data: %w", err)
 	}
 
 	content, tokenCount, err := g.format.Render(data)
 	if err != nil {
-		return "", 0, data.SecretsFound, fmt.Errorf("failed to render %s: %w", g.format.Name(), err)
+		return "", 0, g.lastSecretCount, fmt.Errorf("failed to render %s: %w", g.format.Name(), err)
 	}
 
 	var outputPath string
@@ -100,12 +100,12 @@ func (g *Generator) Generate() (string, int, bool, error) {
 	if g.UseTempFile {
 		tmpFile, err := os.CreateTemp("", fmt.Sprintf("codegrab-*%s", g.format.Extension()))
 		if err != nil {
-			return "", 0, data.SecretsFound, fmt.Errorf("failed to create temporary file: %w", err)
+			return "", 0, g.lastSecretCount, fmt.Errorf("failed to create temporary file: %w", err)
 		}
 		defer tmpFile.Close()
 
 		if _, err := tmpFile.Write([]byte(content)); err != nil {
-			return tmpFile.Name(), tokenCount, data.SecretsFound, fmt.Errorf("failed to write to temporary file: %w", err)
+			return tmpFile.Name(), tokenCount, g.lastSecretCount, fmt.Errorf("failed to write to temporary file: %w", err)
 		}
 		outputPath = tmpFile.Name()
 		displayPath = outputPath
@@ -122,46 +122,46 @@ func (g *Generator) Generate() (string, int, bool, error) {
 		displayPath = outputPath
 		absPath, err := filepath.Abs(outputPath)
 		if err != nil {
-			return "", tokenCount, data.SecretsFound, fmt.Errorf("failed to get absolute path: %w", err)
+			return displayPath, tokenCount, g.lastSecretCount, fmt.Errorf("failed to get absolute path: %w", err)
 		}
 
-		if err := os.WriteFile(outputPath, []byte(content), 0644); err != nil {
-			return "", tokenCount, data.SecretsFound, fmt.Errorf("failed to write to output file: %w", err)
+		if err := os.WriteFile(absPath, []byte(content), 0644); err != nil {
+			return displayPath, tokenCount, g.lastSecretCount, fmt.Errorf("failed to write to output file %s: %w", absPath, err)
 		}
-
-		outputPath = absPath
 	}
 
 	if err := utils.CopyFileObject(outputPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: clipboard copy failed: %v\n", err)
 	}
 
-	return displayPath, tokenCount, data.SecretsFound, nil
+	return displayPath, tokenCount, g.lastSecretCount, nil
 }
 
-// GenerateString returns the rendered content as a string along with its estimated token count
-func (g *Generator) GenerateString() (string, int, bool, error) {
+// GenerateString returns the rendered content as a string along with counts
+func (g *Generator) GenerateString() (string, int, int, error) {
 	if len(g.SelectedFiles) == 0 {
-		return "", 0, false, fmt.Errorf("no files selected, skipping generation")
+		return "", 0, 0, fmt.Errorf("no files selected, skipping generation")
 	}
 
 	if g.format == nil {
-		return "", 0, false, fmt.Errorf("no format set, cannot generate output")
+		return "", 0, 0, fmt.Errorf("no format set, cannot generate output")
 	}
 
 	data, err := g.PrepareTemplateData()
 	if err != nil {
-		return "", 0, false, fmt.Errorf("failed to prepare template data: %w", err)
+		return "", 0, g.lastSecretCount, fmt.Errorf("failed to prepare template data: %w", err)
 	}
 
 	content, tokenCount, err := g.format.Render(data)
-	return content, tokenCount, data.SecretsFound, err
+	return content, tokenCount, g.lastSecretCount, err
 }
 
-// PrepareTemplateData finalizes the selection and builds TemplateData for the template
+// PrepareTemplateData finalizes the selection, scans/redacts secrets, and builds TemplateData
 func (g *Generator) PrepareTemplateData() (TemplateData, error) {
-	g.secretsFound = false
+	g.lastSecretCount = 0
+
 	expandedSelection := make(map[string]bool)
+
 	for path := range g.SelectedFiles {
 		fullPath := filepath.Join(g.RootPath, path)
 		info, err := os.Stat(fullPath)
@@ -210,6 +210,7 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 			expandedSelection[path] = true
 		}
 	}
+
 	g.SelectedFiles = expandedSelection
 
 	rootNode := g.buildTree()
@@ -223,18 +224,23 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 	var filesData []FileData
 	collectFiles(rootNode, &filesData)
 
-	for i := range filesData {
-		if len(filesData[i].Findings) > 0 {
-			g.secretsFound = true
-			if g.RedactSecrets && g.SecretScanner != nil {
-				filesData[i].Content = g.SecretScanner.Redact(filesData[i].Content, filesData[i].Findings)
+	secretCount := 0
+
+	if g.SecretScanner != nil {
+		for i := range filesData {
+			if len(filesData[i].Findings) > 0 {
+				secretCount += len(filesData[i].Findings)
+				if g.RedactSecrets {
+					filesData[i].Content = g.SecretScanner.Redact(filesData[i].Content, filesData[i].Findings)
+				}
 			}
 		}
 	}
 
+	g.lastSecretCount = secretCount
+
 	return TemplateData{
-		Structure:    structureBuilder.String(),
-		Files:        filesData,
-		SecretsFound: g.secretsFound,
+		Structure: structureBuilder.String(),
+		Files:     filesData,
 	}, nil
 }

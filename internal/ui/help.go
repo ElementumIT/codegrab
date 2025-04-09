@@ -40,7 +40,7 @@ const UsageText = `Usage:
     -g, --glob pattern       Include/exclude files and directories
                              (e.g., --glob="*.{ts,tsx}" --glob="\\!*.spec.ts")
     -f, --format format      Output format (available: markdown, text, xml)
-    --skip-redaction         Skip automatic secret redaction (Default: false)
+    -S, --skip-redaction     Skip automatic secret redaction (Default: false)
                              WARNING: This may expose sensitive information!
     --theme                  Set the UI theme (available: catppuccin-latte,
                              catppuccin-frappe, catppuccin-macchiato,
