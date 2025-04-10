@@ -7,25 +7,35 @@ import (
 	"strings"
 
 	"github.com/epilande/codegrab/internal/filesystem"
+	"github.com/epilande/codegrab/internal/secrets"
 	"github.com/epilande/codegrab/internal/utils"
 )
 
 // Generator organizes how we generate the output in different formats
 type Generator struct {
 	format          Format
+	SecretScanner   secrets.Scanner
 	SelectedFiles   map[string]bool
 	DeselectedFiles map[string]bool
 	GitIgnoreMgr    *filesystem.GitIgnoreManager
 	FilterMgr       *filesystem.FilterManager
-	RootPath        string
 	OutputPath      string
+	RootPath        string
 	UseTempFile     bool
 	UseGitIgnore    bool
 	ShowHidden      bool
+	RedactSecrets   bool
+	lastSecretCount int
 }
 
 // NewGenerator constructs a generator with default settings
 func NewGenerator(rootPath string, gitIgnoreMgr *filesystem.GitIgnoreManager, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool) *Generator {
+	secretScanner, err := secrets.NewGitleaksScanner()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FATAL: Failed to initialize secret scanner: %v\n", err)
+		os.Exit(1)
+	}
+
 	return &Generator{
 		RootPath:        rootPath,
 		OutputPath:      outputPath,
@@ -36,7 +46,8 @@ func NewGenerator(rootPath string, gitIgnoreMgr *filesystem.GitIgnoreManager, fi
 		FilterMgr:       filterMgr,
 		UseGitIgnore:    true,
 		ShowHidden:      false,
-		// The format will be set by SetFormat
+		SecretScanner:   secretScanner,
+		RedactSecrets:   true,
 	}
 }
 
@@ -58,24 +69,29 @@ func (g *Generator) GetFormatName() string {
 	return g.format.Name()
 }
 
+// SetRedactionMode enables or disables secret redaction.
+func (g *Generator) SetRedactionMode(redact bool) {
+	g.RedactSecrets = redact
+}
+
 // Generate creates an output file in the specified format
-func (g *Generator) Generate() (string, int, error) {
+func (g *Generator) Generate() (string, int, int, error) {
 	if len(g.SelectedFiles) == 0 {
-		return "", 0, fmt.Errorf("no files selected, skipping generation")
+		return "", 0, 0, fmt.Errorf("no files selected, skipping generation")
 	}
 
 	if g.format == nil {
-		return "", 0, fmt.Errorf("no format set, cannot generate output")
+		return "", 0, 0, fmt.Errorf("no format set, cannot generate output")
 	}
 
 	data, err := g.PrepareTemplateData()
 	if err != nil {
-		return "", 0, fmt.Errorf("failed to prepare template data: %w", err)
+		return "", 0, g.lastSecretCount, fmt.Errorf("failed to prepare template data: %w", err)
 	}
 
 	content, tokenCount, err := g.format.Render(data)
 	if err != nil {
-		return "", 0, fmt.Errorf("failed to render %s: %w", g.format.Name(), err)
+		return "", 0, g.lastSecretCount, fmt.Errorf("failed to render %s: %w", g.format.Name(), err)
 	}
 
 	var outputPath string
@@ -84,18 +100,17 @@ func (g *Generator) Generate() (string, int, error) {
 	if g.UseTempFile {
 		tmpFile, err := os.CreateTemp("", fmt.Sprintf("codegrab-*%s", g.format.Extension()))
 		if err != nil {
-			return "", 0, fmt.Errorf("failed to create temporary file: %w", err)
+			return "", 0, g.lastSecretCount, fmt.Errorf("failed to create temporary file: %w", err)
 		}
 		defer tmpFile.Close()
 
 		if _, err := tmpFile.Write([]byte(content)); err != nil {
-			return tmpFile.Name(), tokenCount, fmt.Errorf("failed to write to temporary file: %w", err)
+			return tmpFile.Name(), tokenCount, g.lastSecretCount, fmt.Errorf("failed to write to temporary file: %w", err)
 		}
 		outputPath = tmpFile.Name()
 		displayPath = outputPath
 	} else {
 		if g.OutputPath != "" {
-			// If output path doesn't have the correct extension, add it
 			if !strings.HasSuffix(g.OutputPath, g.format.Extension()) {
 				g.OutputPath += g.format.Extension()
 			}
@@ -107,44 +122,48 @@ func (g *Generator) Generate() (string, int, error) {
 		displayPath = outputPath
 		absPath, err := filepath.Abs(outputPath)
 		if err != nil {
-			return "", tokenCount, fmt.Errorf("failed to get absolute path: %w", err)
+			return displayPath, tokenCount, g.lastSecretCount, fmt.Errorf("failed to get absolute path: %w", err)
 		}
 
 		if err := os.WriteFile(outputPath, []byte(content), 0644); err != nil {
-			return "", tokenCount, fmt.Errorf("failed to write to output file: %w", err)
+			return displayPath, tokenCount, g.lastSecretCount, fmt.Errorf("failed to write to output file %s: %w", absPath, err)
 		}
 
 		outputPath = absPath
 	}
 
 	if err := utils.CopyFileObject(outputPath); err != nil {
-		return displayPath, tokenCount, fmt.Errorf("clipboard copy failed: %w", err)
+		return displayPath, tokenCount, g.lastSecretCount, fmt.Errorf("clipboard copy failed: %w", err)
 	}
 
-	return displayPath, tokenCount, nil
+	return displayPath, tokenCount, g.lastSecretCount, nil
 }
 
-// GenerateString returns the rendered content as a string along with its estimated token count
-func (g *Generator) GenerateString() (string, int, error) {
+// GenerateString returns the rendered content as a string along with counts
+func (g *Generator) GenerateString() (string, int, int, error) {
 	if len(g.SelectedFiles) == 0 {
-		return "", 0, fmt.Errorf("no files selected, skipping generation")
+		return "", 0, 0, fmt.Errorf("no files selected, skipping generation")
 	}
 
 	if g.format == nil {
-		return "", 0, fmt.Errorf("no format set, cannot generate output")
+		return "", 0, 0, fmt.Errorf("no format set, cannot generate output")
 	}
 
 	data, err := g.PrepareTemplateData()
 	if err != nil {
-		return "", 0, fmt.Errorf("failed to prepare template data: %w", err)
+		return "", 0, g.lastSecretCount, fmt.Errorf("failed to prepare template data: %w", err)
 	}
 
-	return g.format.Render(data)
+	content, tokenCount, err := g.format.Render(data)
+	return content, tokenCount, g.lastSecretCount, err
 }
 
-// PrepareTemplateData finalizes the selection and builds TemplateData for the template
+// PrepareTemplateData finalizes the selection, scans/redacts secrets, and builds TemplateData
 func (g *Generator) PrepareTemplateData() (TemplateData, error) {
+	g.lastSecretCount = 0
+
 	expandedSelection := make(map[string]bool)
+
 	for path := range g.SelectedFiles {
 		fullPath := filepath.Join(g.RootPath, path)
 		info, err := os.Stat(fullPath)
@@ -193,6 +212,7 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 			expandedSelection[path] = true
 		}
 	}
+
 	g.SelectedFiles = expandedSelection
 
 	rootNode := g.buildTree()
@@ -205,6 +225,21 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 
 	var filesData []FileData
 	collectFiles(rootNode, &filesData)
+
+	secretCount := 0
+
+	if g.SecretScanner != nil {
+		for i := range filesData {
+			if len(filesData[i].Findings) > 0 {
+				secretCount += len(filesData[i].Findings)
+				if g.RedactSecrets {
+					filesData[i].Content = g.SecretScanner.Redact(filesData[i].Content, filesData[i].Findings)
+				}
+			}
+		}
+	}
+
+	g.lastSecretCount = secretCount
 
 	return TemplateData{
 		Structure: structureBuilder.String(),

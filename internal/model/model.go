@@ -34,6 +34,7 @@ type Model struct {
 	generator     *generator.Generator
 	rootPath      string
 	successMsg    string
+	warningMsg    string
 	viewport      viewport.Model
 	files         []filesystem.FileItem
 	displayNodes  []FileNode
@@ -47,14 +48,16 @@ type Model struct {
 	showHidden    bool
 	isSearching   bool
 	isGrabbing    bool
+	redactSecrets bool
 }
 
 type Config struct {
-	FilterMgr   *filesystem.FilterManager
-	RootPath    string
-	OutputPath  string
-	Format      string
-	UseTempFile bool
+	FilterMgr     *filesystem.FilterManager
+	RootPath      string
+	OutputPath    string
+	Format        string
+	UseTempFile   bool
+	SkipRedaction bool
 }
 
 func NewModel(config Config) Model {
@@ -67,18 +70,20 @@ func NewModel(config Config) Model {
 	gen := generator.NewGenerator(config.RootPath, gitIgnoreMgr, config.FilterMgr, config.OutputPath, config.UseTempFile)
 	format := formats.GetFormat(config.Format)
 	gen.SetFormat(format)
+	gen.SetRedactionMode(!config.SkipRedaction)
 
 	return Model{
-		rootPath:     config.RootPath,
-		selected:     make(map[string]bool),
-		deselected:   make(map[string]bool),
-		collapsed:    make(map[string]bool),
-		useGitIgnore: true,
-		gitIgnoreMgr: gitIgnoreMgr,
-		filterMgr:    config.FilterMgr,
-		generator:    gen,
-		showHidden:   false,
-		searchInput:  ui.NewSearchInput(),
+		rootPath:      config.RootPath,
+		selected:      make(map[string]bool),
+		deselected:    make(map[string]bool),
+		collapsed:     make(map[string]bool),
+		useGitIgnore:  true,
+		gitIgnoreMgr:  gitIgnoreMgr,
+		filterMgr:     config.FilterMgr,
+		generator:     gen,
+		redactSecrets: !config.SkipRedaction,
+		showHidden:    false,
+		searchInput:   ui.NewSearchInput(),
 		viewport: viewport.Model{
 			Width:  80,
 			Height: 10,

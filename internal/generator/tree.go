@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/epilande/codegrab/internal/secrets"
 	"github.com/epilande/codegrab/internal/utils"
 )
 
@@ -18,6 +19,7 @@ type Node struct {
 	Language string
 	Children []*Node
 	IsDir    bool
+	Findings []secrets.Finding
 }
 
 func (g *Generator) buildTree() *Node {
@@ -83,9 +85,18 @@ func (g *Generator) buildTree() *Node {
 				current.Children = append(current.Children, newNode)
 				current = newNode
 				if !isDir {
-					if content, err := os.ReadFile(filepath.Join(g.RootPath, fullPath)); err == nil {
-						newNode.Content = string(content)
+					if contentBytes, err := os.ReadFile(filepath.Join(g.RootPath, fullPath)); err == nil {
+						content := string(contentBytes)
+						newNode.Content = content
 						newNode.Language = determineLanguage(part)
+						if g.SecretScanner != nil {
+							findings, scanErr := g.SecretScanner.Scan(content)
+							if scanErr != nil {
+								fmt.Fprintf(os.Stderr, "Warning: failed to scan %s for secrets: %v\n", fullPath, scanErr)
+							} else if len(findings) > 0 {
+								newNode.Findings = findings
+							}
+						}
 					} else {
 						fmt.Fprintf(os.Stderr, "Warning: failed to read file %s: %v\n", fullPath, err)
 					}
@@ -153,6 +164,7 @@ func collectFiles(node *Node, files *[]FileData) {
 			Path:     node.Path,
 			Content:  node.Content,
 			Language: node.Language,
+			Findings: node.Findings,
 		})
 	}
 	for _, child := range node.Children {

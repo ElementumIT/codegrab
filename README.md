@@ -29,6 +29,7 @@ to your clipboard, ready for LLM processing.
 - 📋 **Clipboard Integration**: Copy content or output file directly to your clipboard
 - 🌲 **Directory Tree View**: Display a tree-style view of your project structure
 - 🧮 **Token Estimation**: Get estimated token count for LLM context windows
+- 🛡️ **Secret Detection & Redaction**: Uses [gitleaks](https://github.com/gitleaks/gitleaks) to identify potential secrets and prevent sharing sensitive information
 
 ## 📦 Installation
 
@@ -98,6 +99,8 @@ grab [options] [directory]
 | `-t, --temp`            | Use system temporary directory for output file                                          |
 | `-g, --glob pattern`    | Include/exclude files and directories (e.g., `--glob="*.{ts,tsx}" --glob="!*.spec.ts"`) |
 | `-f, --format format`   | Output format (available: markdown, text, xml)                                          |
+| `-S, --skip-redaction`  | Skip automatic secret redaction (WARNING: This may expose sensitive information)        |
+|                         |
 | `--theme`               | Set the UI theme                                                                        |
 
 ### 📖 Examples
@@ -169,12 +172,13 @@ grab [options] [directory]
 
 ### Selection & Output
 
-| Action               | Key                                | Description                                                  |
-| :------------------- | :--------------------------------- | :----------------------------------------------------------- |
-| Select/deselect item | <kbd>tab</kbd> or <kbd>space</kbd> | Toggle selection of the current file or directory            |
-| Copy to clipboard    | <kbd>y</kbd>                       | Copy the generated output to clipboard                       |
-| Generate output file | <kbd>g</kbd>                       | Generate the output file with selected content               |
-| Cycle output formats | <kbd>F</kbd>                       | Cycle through available output formats (markdown, text, xml) |
+| Action                  | Key                                | Description                                                  |
+| :---------------------- | :--------------------------------- | :----------------------------------------------------------- |
+| Select/deselect item    | <kbd>tab</kbd> or <kbd>space</kbd> | Toggle selection of the current file or directory            |
+| Copy to clipboard       | <kbd>y</kbd>                       | Copy the generated output to clipboard                       |
+| Generate output file    | <kbd>g</kbd>                       | Generate the output file with selected content               |
+| Cycle output formats    | <kbd>F</kbd>                       | Cycle through available output formats (markdown, text, xml) |
+| Toggle Secret Redaction | <kbd>S</kbd>                       | Enable/disable automatic secret redaction (Default: On)      |
 
 ### View Options
 
@@ -184,6 +188,14 @@ grab [options] [directory]
 | Toggle hidden files        | <kbd>.</kbd> | Toggle visibility of hidden files and directories |
 | Toggle help screen         | <kbd>?</kbd> | Show or hide the help screen                      |
 | Quit                       | <kbd>q</kbd> | Exit the application                              |
+
+## 🛡️ Secret Detection & Redaction
+
+CodeGrab automatically scans the content of selected files for potential secrets using [gitleaks](https://github.com/gitleaks/gitleaks) with its default rules. This helps prevent accidental exposure of sensitive credentials like API keys, private tokens, and passwords.
+
+- **Enabled by Default**: Secret scanning and redaction are active unless explicitly disabled.
+- **Redaction Format**: Detected secrets are replaced with `[REDACTED_RuleID]`, where `RuleID` indicates the type of secret found (e.g., `[REDACTED_generic-api-key]`).
+- **Skipping Redaction**: You can disable this feature using the `-S` / `--skip-redaction` flag when running the command, or by pressing `S` in the interactive TUI. Use this option with caution, as it may expose sensitive information in the output.
 
 ## 🎨 Themes
 

@@ -18,9 +18,10 @@ Search:
 
 Selection & Output:
   space / tab              Select/deselect file or directory
-  y                        Copy markdown to clipboard
+  y                        Copy output to clipboard
   g                        Generate output file
   F                        Cycle through output formats (md, txt, xml)
+  S                        Toggle secret redaction (Default: On)
 
 View Options:
   i                        Toggle .gitignore filter
@@ -39,6 +40,8 @@ const UsageText = `Usage:
     -g, --glob pattern       Include/exclude files and directories
                              (e.g., --glob="*.{ts,tsx}" --glob="\\!*.spec.ts")
     -f, --format format      Output format (available: markdown, text, xml)
+    -S, --skip-redaction     Skip automatic secret redaction (Default: false)
+                             WARNING: This may expose sensitive information!
     --theme                  Set the UI theme (available: catppuccin-latte,
                              catppuccin-frappe, catppuccin-macchiato,
                              catppuccin-mocha, dracula, nord)

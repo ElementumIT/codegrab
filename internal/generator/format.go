@@ -1,10 +1,13 @@
 package generator
 
+import "github.com/epilande/codegrab/internal/secrets"
+
 // FileData holds file content for the generated sections
 type FileData struct {
 	Path     string
 	Content  string
 	Language string
+	Findings []secrets.Finding
 }
 
 // TemplateData is injected into the templates
