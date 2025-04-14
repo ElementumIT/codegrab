@@ -108,6 +108,12 @@ func (m Model) renderFooter() string {
 	}
 	rightParts = append(rightParts, redactionStatus)
 
+	depStatus := ""
+	if m.resolveDeps {
+		depStatus = ui.GetStyleInfo().Render(" | 🔄 Deps")
+	}
+	rightParts = append(rightParts, depStatus)
+
 	leftContent := lipgloss.JoinHorizontal(lipgloss.Top, leftParts...)
 	rightContent := lipgloss.JoinHorizontal(lipgloss.Top, rightParts...)
 
@@ -161,15 +167,35 @@ func (m *Model) refreshViewportContent() {
 	}
 
 	var lines []string
+	parentIsLast := make([]bool, 100)
+
 	for i, node := range nodes {
-		var indent strings.Builder
+		var prefixBuilder strings.Builder
 		for l := 0; l < node.Level; l++ {
-			indent.WriteString("│   ")
+			if parentIsLast[l] {
+				prefixBuilder.WriteString("    ")
+			} else {
+				prefixBuilder.WriteString("│   ")
+			}
 		}
-		branch := "├── "
+
+		treeBranch := "├── "
 		if node.IsLast {
-			branch = "└── "
+			treeBranch = "└── "
+			if node.Level >= 0 {
+				parentIsLast[node.Level] = true
+			}
+		} else {
+			if node.Level >= 0 {
+				parentIsLast[node.Level] = false
+			}
 		}
+		for l := node.Level + 1; l < len(parentIsLast); l++ {
+			parentIsLast[l] = false
+		}
+
+		treePrefix := prefixBuilder.String() + treeBranch
+
 		dirIndicator := ""
 		if node.IsDir {
 			if m.collapsed[node.Path] {
@@ -181,7 +207,6 @@ func (m *Model) refreshViewportContent() {
 
 		var checkbox string
 		if node.IsDir {
-			// Directories are selected if they're in the selected map
 			if m.selected[node.Path] {
 				checkbox = ui.StyleCheckBox(true)
 			} else if dirsWithSelectedChildren[node.Path] {
@@ -194,22 +219,23 @@ func (m *Model) refreshViewportContent() {
 		}
 
 		name := node.Name
+		depIndicator := ""
+		if node.IsDependency {
+			depIndicator = ui.GetStyleHelp().Render(" [dep]")
+		}
 		if node.IsDir {
 			name = ui.StyleDirectoryName(name + "/")
 			if count := dirSelectedCounts[node.Path]; count > 0 {
-				styledCount := ui.GetStyleSearchCount().Render(fmt.Sprintf("[%d]", count))
+				styledCount := ui.GetStyleHelp().Render(fmt.Sprintf("[%d]", count))
 				name = fmt.Sprintf("%s %s", name, styledCount)
 			}
 		}
 
-		isDeselected := false
-		if !node.IsDir && m.deselected[node.Path] {
-			isDeselected = true
-		}
+		isDeselected := !node.IsDir && m.deselected[node.Path]
 
-		line := fmt.Sprintf("%s %s%s%s%s", checkbox, indent.String(), branch, dirIndicator, name)
+		lineContent := fmt.Sprintf("%s %s%s%s%s", checkbox, treePrefix, dirIndicator, name, depIndicator)
 
-		rendered := ui.StyleFileLine(line, node.IsDir, node.Selected, isDeselected, i == m.cursor)
+		rendered := ui.StyleFileLine(lineContent, node.IsDir, m.selected[node.Path], isDeselected, i == m.cursor)
 		lines = append(lines, rendered)
 	}
 
@@ -247,11 +273,17 @@ func (m *Model) getTotalFileCount() int {
 func (m *Model) getSelectedFileCount() int {
 	selectedCount := 0
 
+	userSelectedFiles := make(map[string]bool)
+	for p, sel := range m.selected {
+		if sel && !m.isDependency[p] {
+			userSelectedFiles[p] = true
+		}
+	}
 	selectedDirs := make(map[string]bool)
-	for path := range m.selected {
-		for _, file := range m.files {
-			if file.Path == path && file.IsDir {
-				selectedDirs[path] = true
+	for p := range userSelectedFiles {
+		for _, f := range m.files {
+			if f.Path == p && f.IsDir {
+				selectedDirs[p] = true
 				break
 			}
 		}
@@ -262,27 +294,33 @@ func (m *Model) getSelectedFileCount() int {
 			continue
 		}
 
-		if m.selected[file.Path] {
-			if !m.deselected[file.Path] {
-				selectedCount++
-			}
+		if m.deselected[file.Path] {
 			continue
 		}
 
-		dir := filepath.Dir(file.Path)
-		for dir != "." && dir != "/" {
-			if selectedDirs[dir] {
-				// In search mode, only count files that are in search results
-				if m.isSearching && len(m.searchResults) > 0 {
-					if m.isInSearchResults(file.Path) && !m.deselected[file.Path] {
-						selectedCount++
-					}
-				} else if !m.deselected[file.Path] {
-					selectedCount++
-				}
+		if m.selected[file.Path] {
+			selectedCount++
+			continue
+		}
+
+		currentDir := filepath.Dir(file.Path)
+		isInSelectedDir := false
+		for currentDir != "." && currentDir != "/" {
+			if selectedDirs[currentDir] {
+				isInSelectedDir = true
 				break
 			}
-			dir = filepath.Dir(dir)
+			currentDir = filepath.Dir(currentDir)
+		}
+
+		if isInSelectedDir {
+			if m.isSearching && len(m.searchResults) > 0 {
+				if m.isInSearchResults(file.Path) {
+					selectedCount++
+				}
+			} else {
+				selectedCount++
+			}
 		}
 	}
 

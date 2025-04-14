@@ -2,12 +2,16 @@ package model
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/epilande/codegrab/internal/dependencies"
 	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/generator/formats"
+	"github.com/epilande/codegrab/internal/utils"
 )
 
 type filesLoadedMsg struct {
@@ -31,13 +35,7 @@ type clipboardCopiedMsg struct {
 }
 
 func (m Model) Init() tea.Cmd {
-	return func() tea.Msg {
-		files, err := filesystem.WalkDirectory(m.rootPath, m.gitIgnoreMgr, m.filterMgr, m.useGitIgnore, m.showHidden)
-		if err != nil {
-			return filesLoadedMsg{files: nil, err: fmt.Errorf("failed to walk directory: %w", err)}
-		}
-		return filesLoadedMsg{files: files, err: nil}
-	}
+	return m.reloadFiles()
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -236,10 +234,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case " ", "tab":
 			if m.cursor < len(m.displayNodes) {
 				node := m.displayNodes[m.cursor]
-				m.toggleSelection(node.Path, node.IsDir)
+				cmds := []tea.Cmd{m.toggleSelection(node.Path, node.IsDir)}
 				m.buildDisplayNodes()
 				m.ensureCursorVisible()
 				m.refreshViewportContent()
+				return m, tea.Batch(cmds...)
 			}
 		case "/":
 			m.isSearching = true
@@ -271,6 +270,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.showHidden = !m.showHidden
 			m.generator.ShowHidden = m.showHidden
 			return m, m.reloadFiles()
+		case "D":
+			m.resolveDeps = !m.resolveDeps
+			if m.resolveDeps {
+				m.successMsg = "Dependency resolution enabled"
+			} else {
+				m.successMsg = "Dependency resolution disabled"
+			}
+			m.refreshViewportContent()
 		case "F":
 			formatNames := formats.GetFormatNames()
 			if len(formatNames) == 0 {
@@ -314,6 +321,9 @@ func (m *Model) reloadFiles() tea.Cmd {
 		if err != nil {
 			return filesLoadedMsg{files: nil, err: fmt.Errorf("failed to reload files: %w", err)}
 		}
+
+		m.isDependency = make(map[string]bool)
+
 		return filesLoadedMsg{files: files, err: nil}
 	}
 }
@@ -379,4 +389,59 @@ func (m Model) copyOutputToClipboard() tea.Cmd {
 			secretCount: secretCount,
 		}
 	}
+}
+
+func (m *Model) resolveAndSelectDeps(filePath string, visited map[string]bool) tea.Cmd {
+	// Only process direct dependencies (depth 1)
+	if visited[filePath] {
+		return nil
+	}
+	visited[filePath] = true
+
+	resolver := dependencies.GetResolver(filePath)
+	if resolver == nil {
+		return nil
+	}
+
+	fullPath := filepath.Join(m.rootPath, filePath)
+	content, err := os.ReadFile(fullPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: cannot read file %s for dependency resolution: %v\n", filePath, err)
+		return nil
+	}
+
+	deps, err := resolver.Resolve(content, filePath, m.rootPath, m.projectModuleName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: error resolving dependencies for %s: %v\n", filePath, err)
+		return nil
+	}
+
+	for _, depPath := range deps {
+		depPath = filepath.ToSlash(filepath.Clean(depPath))
+
+		depFullPath := filepath.Join(m.rootPath, depPath)
+		info, err := os.Stat(depFullPath)
+		if err != nil || info.IsDir() {
+			continue
+		}
+
+		if (m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(depFullPath)) ||
+			(!m.showHidden && utils.IsHiddenPath(depPath)) ||
+			!m.filterMgr.ShouldInclude(depPath) {
+			continue
+		}
+
+		delete(m.deselected, depPath)
+
+		if m.selected[depPath] && !m.isDependency[depPath] {
+			continue
+		}
+
+		if !m.selected[depPath] {
+			m.selected[depPath] = true
+			m.isDependency[depPath] = true
+		}
+	}
+
+	return nil
 }

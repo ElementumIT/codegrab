@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/epilande/codegrab/internal/dependencies"
 	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/generator"
 	"github.com/epilande/codegrab/internal/generator/formats"
@@ -40,6 +42,7 @@ func main() {
 	var themeName string
 	var formatName string
 	var skipRedaction bool
+	var resolveDeps bool
 
 	flag.BoolVar(&showHelp, "help", false, "Display help information")
 	flag.BoolVar(&showHelp, "h", false, "Display help information (shorthand)")
@@ -67,6 +70,8 @@ func main() {
 	formatUsage := fmt.Sprintf("Output format (available: %s)", availableFormats)
 	flag.StringVar(&formatName, "format", "markdown", formatUsage)
 	flag.StringVar(&formatName, "f", "markdown", formatUsage+" (shorthand)")
+
+	flag.BoolVar(&resolveDeps, "deps", false, "Automatically include direct dependencies (Go, TS/JS)")
 
 	flag.BoolVar(&skipRedaction, "skip-redaction", false, "Skip automatic secret redaction (WARNING: this may expose secrets)")
 	flag.BoolVar(&skipRedaction, "S", false, "Skip automatic secret redaction (shorthand)")
@@ -97,6 +102,12 @@ func main() {
 		root = flag.Arg(0)
 	}
 
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		log.Fatalf("Error getting absolute path for %q: %v", root, err)
+	}
+	root = absRoot
+
 	// Validate the provided path
 	if stat, err := os.Stat(root); err != nil {
 		if os.IsNotExist(err) {
@@ -115,7 +126,7 @@ func main() {
 	}
 
 	if nonInteractive {
-		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName, skipRedaction)
+		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName, skipRedaction, resolveDeps)
 	} else {
 		config := model.Config{
 			RootPath:      root,
@@ -124,6 +135,7 @@ func main() {
 			UseTempFile:   useTempFile,
 			Format:        formatName,
 			SkipRedaction: skipRedaction,
+			ResolveDeps:   resolveDeps,
 		}
 
 		m := model.NewModel(config)
@@ -136,22 +148,16 @@ func main() {
 }
 
 // runNonInteractive processes files and generates output without user interaction
-func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool, formatName string, skipRedaction bool) {
+func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool, formatName string, skipRedaction bool, resolveDeps bool) {
 	gitIgnoreMgr, err := filesystem.NewGitIgnoreManager(rootPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading .gitignore: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error reading .gitignore: %v\n", err)
 	}
 
 	files, err := filesystem.WalkDirectory(rootPath, gitIgnoreMgr, filterMgr, true, false)
 	if err != nil {
 		log.Fatalf("Error walking directory: %v\n", err)
 	}
-
-	gen := generator.NewGenerator(rootPath, gitIgnoreMgr, filterMgr, outputPath, useTempFile)
-	format := formats.GetFormat(formatName)
-	gen.SetFormat(format)
-	gen.SetRedactionMode(!skipRedaction)
 
 	// Automatically select all non-directory files
 	selectedFiles := make(map[string]bool)
@@ -160,6 +166,69 @@ func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, out
 			selectedFiles[file.Path] = true
 		}
 	}
+
+	if resolveDeps {
+		fmt.Println("ℹ️ Resolving dependencies...")
+		projectModuleName := dependencies.ReadGoModFile(rootPath)
+		queue := make([]string, 0, len(selectedFiles))
+		processed := make(map[string]bool)
+
+		for path := range selectedFiles {
+			queue = append(queue, path)
+			processed[path] = true
+		}
+
+		i := 0
+		for i < len(queue) {
+			filePath := queue[i]
+			i++
+
+			resolver := dependencies.GetResolver(filePath)
+			if resolver == nil {
+				continue
+			}
+
+			fullPath := filepath.Join(rootPath, filePath)
+			content, err := os.ReadFile(fullPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: cannot read %s for dep resolution: %v\n", filePath, err)
+				continue
+			}
+
+			deps, err := resolver.Resolve(content, filePath, rootPath, projectModuleName)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: cannot resolve deps for %s: %v\n", filePath, err)
+				continue
+			}
+
+			for _, depPath := range deps {
+				depPath = filepath.ToSlash(filepath.Clean(depPath))
+
+				depFullPath := filepath.Join(rootPath, depPath)
+				depInfo, statErr := os.Stat(depFullPath)
+				if statErr != nil || depInfo.IsDir() {
+					continue
+				}
+
+				if (gitIgnoreMgr.IsIgnored(depFullPath)) ||
+					(utils.IsHiddenPath(depPath)) {
+					continue
+				}
+
+				if !processed[depPath] {
+					fmt.Printf("Adding dependency: %s (required by %s)\n", depPath, filePath)
+					selectedFiles[depPath] = true
+					processed[depPath] = true
+				}
+			}
+		}
+		fmt.Printf("ℹ️ Dependency resolution complete. Total files selected: %d\n", len(selectedFiles))
+	}
+
+	gen := generator.NewGenerator(rootPath, gitIgnoreMgr, filterMgr, outputPath, useTempFile)
+	format := formats.GetFormat(formatName)
+	gen.SetFormat(format)
+	gen.SetRedactionMode(!skipRedaction)
 
 	gen.SelectedFiles = selectedFiles
 
