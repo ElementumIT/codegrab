@@ -2,16 +2,12 @@ package model
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/epilande/codegrab/internal/dependencies"
 	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/generator/formats"
-	"github.com/epilande/codegrab/internal/utils"
 )
 
 type filesLoadedMsg struct {
@@ -389,59 +385,4 @@ func (m Model) copyOutputToClipboard() tea.Cmd {
 			secretCount: secretCount,
 		}
 	}
-}
-
-func (m *Model) resolveAndSelectDeps(filePath string, visited map[string]bool) tea.Cmd {
-	// Only process direct dependencies (depth 1)
-	if visited[filePath] {
-		return nil
-	}
-	visited[filePath] = true
-
-	resolver := dependencies.GetResolver(filePath)
-	if resolver == nil {
-		return nil
-	}
-
-	fullPath := filepath.Join(m.rootPath, filePath)
-	content, err := os.ReadFile(fullPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: cannot read file %s for dependency resolution: %v\n", filePath, err)
-		return nil
-	}
-
-	deps, err := resolver.Resolve(content, filePath, m.rootPath, m.projectModuleName)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: error resolving dependencies for %s: %v\n", filePath, err)
-		return nil
-	}
-
-	for _, depPath := range deps {
-		depPath = filepath.ToSlash(filepath.Clean(depPath))
-
-		depFullPath := filepath.Join(m.rootPath, depPath)
-		info, err := os.Stat(depFullPath)
-		if err != nil || info.IsDir() {
-			continue
-		}
-
-		if (m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(depFullPath)) ||
-			(!m.showHidden && utils.IsHiddenPath(depPath)) ||
-			!m.filterMgr.ShouldInclude(depPath) {
-			continue
-		}
-
-		delete(m.deselected, depPath)
-
-		if m.selected[depPath] && !m.isDependency[depPath] {
-			continue
-		}
-
-		if !m.selected[depPath] {
-			m.selected[depPath] = true
-			m.isDependency[depPath] = true
-		}
-	}
-
-	return nil
 }

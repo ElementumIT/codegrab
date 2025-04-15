@@ -11,6 +11,11 @@ import (
 	"github.com/epilande/codegrab/internal/utils"
 )
 
+type QueuedDep struct {
+	Path  string
+	Depth int
+}
+
 func (m *Model) filterSelections() {
 	for p := range m.selected {
 		if (!m.showHidden && utils.IsHiddenPath(p)) ||
@@ -87,7 +92,13 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 		return nil
 	}
 
-	var cmds []tea.Cmd
+	maxDepth := 0
+	if m.resolveDeps {
+		maxDepth = m.maxDepth
+	}
+
+	depQueue := []QueuedDep{}
+	depProcessed := make(map[string]bool)
 
 	if isDir {
 		// Selecting/Deselecting Directory
@@ -112,24 +123,18 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 					}
 				}
 			}
+			m.deselected[path] = true
 
 			if m.resolveDeps {
 				for _, filePath := range filesDeselectedInDir {
-					deps, err := m.getDirectDependencies(filePath)
-					if err != nil {
-						fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
-						continue
-					}
+					deps, _ := m.getDirectDependencies(filePath)
 					if deps != nil {
 						for _, depPath := range deps {
 							if m.isDependency[depPath] {
-								delete(m.selected, depPath)
-								delete(m.isDependency, depPath)
-								depFullPath := filepath.Join(m.rootPath, depPath)
-								if parentDirRel := findParentDirectory(depFullPath, m.rootPath, m.selected); parentDirRel != "" {
+								if parentDir := findParentDirectory(filepath.Join(m.rootPath, depPath), m.rootPath, m.selected); parentDir == "" {
+									delete(m.selected, depPath)
+									delete(m.isDependency, depPath)
 									m.deselected[depPath] = true
-								} else {
-									delete(m.deselected, depPath)
 								}
 							}
 						}
@@ -141,54 +146,39 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 			m.selected[path] = true
 			delete(m.deselected, path)
 
-			filesSelectedInDir := []string{}
-
-			if m.isSearching && len(m.searchResults) > 0 {
-				searchResultPaths := make(map[string]bool)
+			searchResultPaths := make(map[string]bool)
+			useSearchResults := m.isSearching && len(m.searchResults) > 0
+			if useSearchResults {
 				for _, node := range m.searchResults {
 					if !node.IsDir {
 						searchResultPaths[node.Path] = true
 					}
 				}
-				for _, f := range m.files {
-					if strings.HasPrefix(f.Path, path+"/") && !f.IsDir && searchResultPaths[f.Path] {
-						if !m.selected[f.Path] {
-							filesSelectedInDir = append(filesSelectedInDir, f.Path)
-						}
-						m.selected[f.Path] = true
-						delete(m.deselected, f.Path)
-						delete(m.isDependency, f.Path)
-					}
-				}
-			} else {
-				for _, f := range m.files {
-					if strings.HasPrefix(f.Path, path+"/") {
-						shouldInclude := true
-						fFullPath := filepath.Join(m.rootPath, f.Path)
-						if (m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(fFullPath)) ||
-							(!m.showHidden && utils.IsHiddenPath(f.Path)) ||
-							!m.filterMgr.ShouldInclude(f.Path) {
-							shouldInclude = false
-						}
-
-						if shouldInclude {
-							if !m.selected[f.Path] && !f.IsDir {
-								filesSelectedInDir = append(filesSelectedInDir, f.Path)
-							}
-							m.selected[f.Path] = true
-							delete(m.deselected, f.Path)
-							delete(m.isDependency, f.Path)
-						}
-					}
-				}
 			}
 
-			if m.resolveDeps {
-				for _, filePath := range filesSelectedInDir {
-					visited := make(map[string]bool)
-					cmd := m.resolveAndSelectDeps(filePath, visited)
-					if cmd != nil {
-						cmds = append(cmds, cmd)
+			for _, f := range m.files {
+				if strings.HasPrefix(f.Path, path+"/") {
+					if useSearchResults && !f.IsDir && !searchResultPaths[f.Path] {
+						continue
+					}
+
+					fFullPath := filepath.Join(m.rootPath, f.Path)
+					if (m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(fFullPath)) ||
+						(!m.showHidden && utils.IsHiddenPath(f.Path)) ||
+						!m.filterMgr.ShouldInclude(f.Path) {
+						continue
+					}
+
+					newlySelected := !m.selected[f.Path]
+					m.selected[f.Path] = true
+					delete(m.deselected, f.Path)
+					delete(m.isDependency, f.Path)
+
+					if newlySelected && !f.IsDir && m.resolveDeps && maxDepth > 0 {
+						if !depProcessed[f.Path] {
+							depQueue = append(depQueue, QueuedDep{Path: f.Path, Depth: 0})
+							depProcessed[f.Path] = true
+						}
 					}
 				}
 			}
@@ -198,29 +188,24 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 		if m.selected[path] {
 			// Deselecting file
 			delete(m.selected, path)
+			wasDependency := m.isDependency[path]
 			delete(m.isDependency, path)
 
-			if parentDirRel := findParentDirectory(fullPath, m.rootPath, m.selected); parentDirRel != "" {
+			if parentDir := findParentDirectory(fullPath, m.rootPath, m.selected); parentDir != "" {
 				m.deselected[path] = true
 			} else {
 				delete(m.deselected, path)
 			}
 
-			if m.resolveDeps {
-				deps, err := m.getDirectDependencies(path)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
-				}
+			if m.resolveDeps && wasDependency {
+				deps, _ := m.getDirectDependencies(path)
 				if deps != nil {
 					for _, depPath := range deps {
 						if m.isDependency[depPath] {
-							delete(m.selected, depPath)
-							delete(m.isDependency, depPath)
-							depFullPath := filepath.Join(m.rootPath, depPath)
-							if parentDirRel := findParentDirectory(depFullPath, m.rootPath, m.selected); parentDirRel != "" {
+							if parentDir := findParentDirectory(filepath.Join(m.rootPath, depPath), m.rootPath, m.selected); parentDir == "" {
+								delete(m.selected, depPath)
+								delete(m.isDependency, depPath)
 								m.deselected[depPath] = true
-							} else {
-								delete(m.deselected, depPath)
 							}
 						}
 					}
@@ -232,19 +217,59 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 			delete(m.deselected, path)
 			delete(m.isDependency, path)
 
-			if m.resolveDeps {
-				visited := make(map[string]bool)
-				cmd := m.resolveAndSelectDeps(path, visited)
-				if cmd != nil {
-					cmds = append(cmds, cmd)
+			if m.resolveDeps && maxDepth > 0 {
+				if !depProcessed[path] {
+					depQueue = append(depQueue, QueuedDep{Path: path, Depth: 0})
+					depProcessed[path] = true
 				}
 			}
 		}
 	}
 
-	if len(cmds) > 0 {
-		return tea.Batch(cmds...)
+	// This runs only if m.resolveDeps is true and items were added to depQueue
+	i := 0
+	for i < len(depQueue) {
+		currentItem := depQueue[i]
+		i++
+
+		filePath := currentItem.Path
+		currentDepth := currentItem.Depth
+
+		if currentDepth >= maxDepth {
+			continue
+		}
+
+		directDeps, err := m.getDirectDependencies(filePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
+			continue
+		}
+
+		for _, depPath := range directDeps {
+			depFullPath := filepath.Join(m.rootPath, depPath)
+			info, statErr := os.Stat(depFullPath)
+			if statErr != nil || info.IsDir() ||
+				(m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(depFullPath)) ||
+				(!m.showHidden && utils.IsHiddenPath(depPath)) ||
+				!m.filterMgr.ShouldInclude(depPath) {
+				continue
+			}
+
+			if !m.selected[depPath] {
+				m.selected[depPath] = true
+				m.isDependency[depPath] = true
+				delete(m.deselected, depPath)
+
+				if !depProcessed[depPath] {
+					depQueue = append(depQueue, QueuedDep{Path: depPath, Depth: currentDepth + 1})
+					depProcessed[depPath] = true
+				}
+			} else {
+				delete(m.deselected, depPath)
+			}
+		}
 	}
+
 	return nil
 }
 

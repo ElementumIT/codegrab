@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,6 +44,7 @@ func main() {
 	var formatName string
 	var skipRedaction bool
 	var resolveDeps bool
+	var maxDepth int
 
 	flag.BoolVar(&showHelp, "help", false, "Display help information")
 	flag.BoolVar(&showHelp, "h", false, "Display help information (shorthand)")
@@ -73,6 +75,8 @@ func main() {
 
 	flag.BoolVar(&resolveDeps, "deps", false, "Automatically include direct dependencies (Go, TS/JS)")
 
+	flag.IntVar(&maxDepth, "max-depth", 1, "Maximum depth for dependency resolution (-1 for unlimited)")
+
 	flag.BoolVar(&skipRedaction, "skip-redaction", false, "Skip automatic secret redaction (WARNING: this may expose secrets)")
 	flag.BoolVar(&skipRedaction, "S", false, "Skip automatic secret redaction (shorthand)")
 
@@ -94,6 +98,10 @@ func main() {
 		if err := themes.SetTheme(themeName); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: %v, using default theme\n", err)
 		}
+	}
+
+	if maxDepth < 0 {
+		maxDepth = math.MaxInt
 	}
 
 	// Use current directory if no argument is provided
@@ -126,7 +134,7 @@ func main() {
 	}
 
 	if nonInteractive {
-		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName, skipRedaction, resolveDeps)
+		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName, skipRedaction, resolveDeps, maxDepth)
 	} else {
 		config := model.Config{
 			RootPath:      root,
@@ -136,6 +144,7 @@ func main() {
 			Format:        formatName,
 			SkipRedaction: skipRedaction,
 			ResolveDeps:   resolveDeps,
+			MaxDepth:      maxDepth,
 		}
 
 		m := model.NewModel(config)
@@ -148,7 +157,7 @@ func main() {
 }
 
 // runNonInteractive processes files and generates output without user interaction
-func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool, formatName string, skipRedaction bool, resolveDeps bool) {
+func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool, formatName string, skipRedaction bool, resolveDeps bool, maxDepth int) {
 	gitIgnoreMgr, err := filesystem.NewGitIgnoreManager(rootPath)
 	if err != nil {
 		log.Fatalf("Error reading .gitignore: %v\n", err)
@@ -170,26 +179,33 @@ func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, out
 	if resolveDeps {
 		fmt.Println("ℹ️ Resolving dependencies...")
 		projectModuleName := dependencies.ReadGoModFile(rootPath)
-		queue := make([]string, 0, len(selectedFiles))
+
+		queue := make([]model.QueuedDep, 0, len(selectedFiles))
 		processed := make(map[string]bool)
 
 		for path := range selectedFiles {
-			queue = append(queue, path)
+			queue = append(queue, model.QueuedDep{Path: path, Depth: 0})
 			processed[path] = true
 		}
 
 		i := 0
 		for i < len(queue) {
-			filePath := queue[i]
+			currentItem := queue[i]
 			i++
+
+			filePath := currentItem.Path
+			currentDepth := currentItem.Depth
+
+			if currentDepth >= maxDepth {
+				continue
+			}
 
 			resolver := dependencies.GetResolver(filePath)
 			if resolver == nil {
 				continue
 			}
 
-			fullPath := filepath.Join(rootPath, filePath)
-			content, err := os.ReadFile(fullPath)
+			content, err := os.ReadFile(filepath.Join(rootPath, filePath))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Warning: cannot read %s for dep resolution: %v\n", filePath, err)
 				continue
@@ -206,19 +222,18 @@ func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, out
 
 				depFullPath := filepath.Join(rootPath, depPath)
 				depInfo, statErr := os.Stat(depFullPath)
-				if statErr != nil || depInfo.IsDir() {
-					continue
-				}
-
-				if (gitIgnoreMgr.IsIgnored(depFullPath)) ||
+				if statErr != nil || depInfo.IsDir() ||
+					(gitIgnoreMgr.IsIgnored(depFullPath)) ||
 					(utils.IsHiddenPath(depPath)) {
 					continue
 				}
 
 				if !processed[depPath] {
-					fmt.Printf("Adding dependency: %s (required by %s)\n", depPath, filePath)
+					fmt.Printf("Adding dependency: %s (depth %d, required by %s)\n", depPath, currentDepth+1, filePath)
 					selectedFiles[depPath] = true
 					processed[depPath] = true
+
+					queue = append(queue, model.QueuedDep{Path: depPath, Depth: currentDepth + 1})
 				}
 			}
 		}
@@ -242,6 +257,8 @@ func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, out
 	if secretCount > 0 && skipRedaction {
 		fmt.Fprintf(os.Stderr, "⚠️ WARNING: %d secrets detected in the output and redaction was skipped!\n", secretCount)
 	} else if secretCount > 0 && !skipRedaction {
-		fmt.Fprintf(os.Stderr, "ℹ️ INFO: %d secrets detected and redacted in the output.\n", secretCount)
+		fmt.Fprintf(os.Stderr, "🛡️ INFO: %d secrets detected and redacted in the output.\n", secretCount)
+	} else {
+		fmt.Println("🛡️ No secrets detected in the output.")
 	}
 }

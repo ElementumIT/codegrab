@@ -47,6 +47,7 @@ type Model struct {
 	cursor            int
 	width             int
 	height            int
+	maxDepth          int
 	showHelp          bool
 	useGitIgnore      bool
 	showHidden        bool
@@ -61,6 +62,7 @@ type Config struct {
 	RootPath      string
 	OutputPath    string
 	Format        string
+	MaxDepth      int
 	UseTempFile   bool
 	SkipRedaction bool
 	ResolveDeps   bool
@@ -92,6 +94,7 @@ func NewModel(config Config) Model {
 		generator:         gen,
 		redactSecrets:     !config.SkipRedaction,
 		resolveDeps:       config.ResolveDeps,
+		maxDepth:          config.MaxDepth,
 		projectModuleName: moduleName,
 		showHidden:        false,
 		searchInput:       ui.NewSearchInput(),
