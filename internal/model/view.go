@@ -110,7 +110,7 @@ func (m Model) renderFooter() string {
 
 	depStatus := ""
 	if m.resolveDeps {
-		depStatus = ui.GetStyleInfo().Render(" | 🔄 Deps")
+		depStatus = ui.GetStyleInfo().Render(" | 🔗 Deps")
 	}
 	rightParts = append(rightParts, depStatus)
 
