@@ -30,6 +30,8 @@ type clipboardCopiedMsg struct {
 	secretCount int
 }
 
+type refreshMsg struct{}
+
 func (m Model) Init() tea.Cmd {
 	return m.reloadFiles()
 }
@@ -89,6 +91,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.warningMsg = ""
 			}
 		}
+		m.refreshViewportContent()
+		return m, nil
+
+	case refreshMsg:
+		m.successMsg = "🔄 Refreshed files and reset selection"
 		m.refreshViewportContent()
 		return m, nil
 
@@ -188,6 +195,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.ensureCursorVisible()
 				m.refreshViewportContent()
 			}
+		case "r":
+			m.selected = make(map[string]bool)
+			m.deselected = make(map[string]bool)
+			m.isDependency = make(map[string]bool)
+			m.cursor = 0
+			return m, tea.Sequence(
+				m.reloadFiles(),
+				func() tea.Msg { return refreshMsg{} },
+			)
 		case "H", "home":
 			m.cursor = 0
 			m.ensureCursorVisible()
@@ -261,10 +277,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "i":
 			m.useGitIgnore = !m.useGitIgnore
 			m.generator.UseGitIgnore = m.useGitIgnore
+			m.filterSelections()
 			return m, m.reloadFiles()
 		case ".":
 			m.showHidden = !m.showHidden
 			m.generator.ShowHidden = m.showHidden
+			m.filterSelections()
 			return m, m.reloadFiles()
 		case "D":
 			m.resolveDeps = !m.resolveDeps
@@ -312,7 +330,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) reloadFiles() tea.Cmd {
 	return func() tea.Msg {
-		m.filterSelections()
 		files, err := filesystem.WalkDirectory(m.rootPath, m.gitIgnoreMgr, m.filterMgr, m.useGitIgnore, m.showHidden)
 		if err != nil {
 			return filesLoadedMsg{files: nil, err: fmt.Errorf("failed to reload files: %w", err)}
