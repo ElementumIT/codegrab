@@ -3,6 +3,7 @@ package model
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/epilande/codegrab/internal/filesystem"
@@ -248,6 +249,9 @@ func TestToggleSelection(t *testing.T) {
 		"dir1/file2.txt",
 		"dir2/file3.txt",
 	}
+	var fileItems []filesystem.FileItem
+	fileItems = append(fileItems, filesystem.FileItem{Path: "dir1", IsDir: true, Level: 0})
+	fileItems = append(fileItems, filesystem.FileItem{Path: "dir2", IsDir: true, Level: 0})
 
 	for _, file := range testFiles {
 		path := filepath.Join(tempDir, filepath.FromSlash(file))
@@ -258,20 +262,24 @@ func TestToggleSelection(t *testing.T) {
 		if err := os.WriteFile(path, []byte("test content"), 0644); err != nil {
 			t.Fatalf("Failed to create file %s: %v", path, err)
 		}
+		relPath, _ := filepath.Rel(tempDir, path)
+		fileItems = append(fileItems, filesystem.FileItem{
+			Path:  filepath.ToSlash(relPath),
+			IsDir: false,
+			Level: strings.Count(filepath.ToSlash(relPath), "/"),
+		})
 	}
 
-	m := Model{
-		rootPath:   tempDir,
-		selected:   make(map[string]bool),
-		deselected: make(map[string]bool),
-		files: []filesystem.FileItem{
-			{Path: "dir1", IsDir: true, Level: 0},
-			{Path: "dir1/file1.txt", IsDir: false, Level: 1},
-			{Path: "dir1/file2.txt", IsDir: false, Level: 1},
-			{Path: "dir2", IsDir: true, Level: 0},
-			{Path: "dir2/file3.txt", IsDir: false, Level: 1},
-		},
+	config := Config{
+		RootPath:  tempDir,
+		FilterMgr: filesystem.NewFilterManager(),
 	}
+	m := NewModel(config)
+	m.files = fileItems
+
+	m.selected = make(map[string]bool)
+	m.deselected = make(map[string]bool)
+	m.isDependency = make(map[string]bool)
 
 	// Test selecting a directory
 	m.toggleSelection("dir1", true)

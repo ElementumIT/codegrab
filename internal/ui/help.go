@@ -20,6 +20,7 @@ Selection & Output:
   space / tab              Select/deselect file or directory
   y                        Copy output to clipboard
   g                        Generate output file
+  D                        Toggle automatic dependency resolution (Go, TS/JS)
   F                        Cycle through output formats (md, txt, xml)
   S                        Toggle secret redaction (Default: On)
 
@@ -47,14 +48,14 @@ const UsageText = `Usage:
                              catppuccin-mocha, dracula, nord)
 
   Examples:
-    # Grab all files in current directory
+    # Grab files in current directory interactively
     grab
 
-    # Grab all files in specific directory
-    grab /path/to/project
+	  # Grab all files in current directory (non-interactive)
+		grab -n
 
-    # Run in interactive mode for manual file selection
-    grab -i /path/to/project
+    # Grab specific directory interactively including dependencies
+		grab --deps /path/to/project
 
     # Specify custom output file
     grab -o output.md /path/to/project

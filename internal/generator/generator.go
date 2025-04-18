@@ -174,41 +174,20 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 		if !g.ShowHidden && strings.HasPrefix(info.Name(), ".") {
 			continue
 		}
-		if !g.FilterMgr.ShouldInclude(path) {
+		if g.UseGitIgnore && g.GitIgnoreMgr.IsIgnored(fullPath) {
 			continue
 		}
 		if info.IsDir() {
-			if err := filepath.Walk(fullPath, func(walkPath string, info os.FileInfo, err error) error {
-				if err != nil {
-					return fmt.Errorf("failed to walk path %s: %w", walkPath, err)
-				}
-				if !g.ShowHidden && strings.HasPrefix(info.Name(), ".") {
-					if info.IsDir() {
-						return filepath.SkipDir
-					}
-					return nil
-				}
-				relPath, err := filepath.Rel(g.RootPath, walkPath)
-				if err != nil {
-					return fmt.Errorf("failed to get relative path for %s: %w", walkPath, err)
-				}
-				if g.UseGitIgnore && g.GitIgnoreMgr.IsIgnored(walkPath) {
-					return nil
-				}
-				if !g.FilterMgr.ShouldInclude(relPath) {
-					if info.IsDir() {
-						return filepath.SkipDir
-					}
-					return nil
-				}
-				if !g.DeselectedFiles[relPath] {
-					expandedSelection[relPath] = true
-				}
-				return nil
-			}); err != nil {
-				return TemplateData{}, fmt.Errorf("failed to walk directory %s: %w", fullPath, err)
-			}
+			continue
 		} else {
+			isText, textErr := utils.IsTextFile(fullPath)
+			if textErr != nil {
+				fmt.Fprintf(os.Stderr, "Warning: Skipping %s during preparation (error checking type): %v\n", path, textErr)
+				continue
+			}
+			if !isText {
+				continue
+			}
 			expandedSelection[path] = true
 		}
 	}
@@ -217,10 +196,16 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 
 	rootNode := g.buildTree()
 	var structureBuilder strings.Builder
-	fmt.Fprintf(&structureBuilder, "%s/\n", filepath.Base(g.RootPath))
+	baseRootName := filepath.Base(g.RootPath)
+	if baseRootName == "." || baseRootName == "/" {
+		cwd, _ := os.Getwd()
+		baseRootName = filepath.Base(cwd)
+	}
+	fmt.Fprintf(&structureBuilder, "%s/\n", baseRootName)
+
 	for i, child := range rootNode.Children {
 		isLast := i == len(rootNode.Children)-1
-		renderTree(child, "", isLast, &structureBuilder, filepath.Base(g.RootPath), g.DeselectedFiles)
+		renderTree(child, "", isLast, &structureBuilder, baseRootName, make(map[string]bool))
 	}
 
 	var filesData []FileData
