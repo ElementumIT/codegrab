@@ -30,6 +30,7 @@ to your clipboard, ready for LLM processing.
 - 🌲 **Directory Tree View**: Display a tree-style view of your project structure
 - 🧮 **Token Estimation**: Get estimated token count for LLM context windows
 - 🛡️ **Secret Detection & Redaction**: Uses [gitleaks](https://github.com/gitleaks/gitleaks) to identify potential secrets and prevent sharing sensitive information
+- 🔗 **Automatic Dependency Resolution**: Automatically include dependencies for Go, JS/TS when using the `--deps` flag
 
 ## 📦 Installation
 
@@ -100,7 +101,8 @@ grab [options] [directory]
 | `-g, --glob pattern`    | Include/exclude files and directories (e.g., `--glob="*.{ts,tsx}" --glob="!*.spec.ts"`) |
 | `-f, --format format`   | Output format (available: markdown, text, xml)                                          |
 | `-S, --skip-redaction`  | Skip automatic secret redaction (WARNING: This may expose sensitive information)        |
-|                         |
+| `--deps`                | Automatically include direct dependencies (Go, JS/TS).                                  |
+| `--max-depth depth`     | Maximum depth for dependency resolution (-1 for unlimited, default: 1).                 |
 | `--theme`               | Set the UI theme                                                                        |
 
 ### 📖 Examples
@@ -117,31 +119,37 @@ grab [options] [directory]
    grab -n
    ```
 
-3. Grab a specific directory:
+3. Grab a specific directory interactively:
 
    ```bash
    grab /path/to/project
    ```
 
-4. Specify custom output file:
+4. Grab a specific directory non-interactively including all dependencies (unlimited depth):
+
+   ```bash
+   grab -n --deps --max-depth -1
+   ```
+
+5. Specify custom output file:
 
    ```bash
    grab -o output.md /path/to/project
    ```
 
-5. Generate XML output:
+6. Generate XML output:
 
    ```bash
    grab -f xml -o output.xml /path/to/project
    ```
 
-6. Filter files using glob pattern:
+7. Filter files using glob pattern:
 
    ```bash
    grab -g="*.go" /path/to/project
    ```
 
-7. Use multiple glob patterns for include/exclude:
+8. Use multiple glob patterns for include/exclude:
    ```bash
    grab -g="*.{ts,tsx}" -g="!*.spec.{ts,tsx}"
    ```
@@ -172,13 +180,14 @@ grab [options] [directory]
 
 ### Selection & Output
 
-| Action                  | Key                                | Description                                                  |
-| :---------------------- | :--------------------------------- | :----------------------------------------------------------- |
-| Select/deselect item    | <kbd>tab</kbd> or <kbd>space</kbd> | Toggle selection of the current file or directory            |
-| Copy to clipboard       | <kbd>y</kbd>                       | Copy the generated output to clipboard                       |
-| Generate output file    | <kbd>g</kbd>                       | Generate the output file with selected content               |
-| Cycle output formats    | <kbd>F</kbd>                       | Cycle through available output formats (markdown, text, xml) |
-| Toggle Secret Redaction | <kbd>S</kbd>                       | Enable/disable automatic secret redaction (Default: On)      |
+| Action                       | Key                                | Description                                                                  |
+| :--------------------------- | :--------------------------------- | :--------------------------------------------------------------------------- |
+| Select/deselect item         | <kbd>tab</kbd> or <kbd>space</kbd> | Toggle selection of the current file or directory                            |
+| Copy to clipboard            | <kbd>y</kbd>                       | Copy the generated output to clipboard                                       |
+| Generate output file         | <kbd>g</kbd>                       | Generate the output file with selected content                               |
+| Toggle Dependency Resolution | <kbd>D</kbd>                       | Enable/disable automatic dependency resolution for Go & JS/TS (Default: Off) |
+| Cycle output formats         | <kbd>F</kbd>                       | Cycle through available output formats (markdown, text, xml)                 |
+| Toggle Secret Redaction      | <kbd>S</kbd>                       | Enable/disable automatic secret redaction (Default: On)                      |
 
 ### View Options
 
@@ -189,13 +198,31 @@ grab [options] [directory]
 | Toggle help screen         | <kbd>?</kbd> | Show or hide the help screen                      |
 | Quit                       | <kbd>q</kbd> | Exit the application                              |
 
+## 🔗 Automatic Dependency Resolution
+
+CodeGrab can automatically include dependencies for selected files, making it easier to share complete code snippets with LLMs.
+
+- **How it works**: When enabled, CodeGrab utilizes [tree-sitter](https://tree-sitter.github.io/tree-sitter/) to parse selected source files, identifying language-specific dependency declarations (like `import` or `require`). It then attempts to resolve these dependencies within your project and automatically includes the necessary files.
+- **Supported Languages**:
+  - **Go**: Resolves relative imports and project-local module imports (if `go.mod` is present).
+  - **JavaScript/TypeScript**: Resolves relative imports/requires for `.js`, `.jsx`, `.ts`, and `.tsx` files, including directory `index` files.
+- **Enabling**:
+  - **Interactive Mode**: Press <kbd>D</kbd> to toggle dependency resolution on/off. A `🔗 Deps` indicator will appear in the footer when active. Files added as dependencies will be marked with `[dep]`.
+  - **Non-Interactive Mode**: Use the `--deps` flag.
+- **Controlling Depth**: The `--max-depth` flag controls how many levels of dependencies are included:
+  - `1` (Default): Only includes files directly imported by your initially selected files.
+  - `N`: Includes dependencies up to `N` levels deep.
+  - `-1`: Includes all dependencies recursively (unlimited depth).
+
+![codegrab-deps](https://github.com/user-attachments/assets/db04805c-a0b0-4249-ab48-da3d7b92000c)
+
 ## 🛡️ Secret Detection & Redaction
 
 CodeGrab automatically scans the content of selected files for potential secrets using [gitleaks](https://github.com/gitleaks/gitleaks) with its default rules. This helps prevent accidental exposure of sensitive credentials like API keys, private tokens, and passwords.
 
 - **Enabled by Default**: Secret scanning and redaction are active unless explicitly disabled.
 - **Redaction Format**: Detected secrets are replaced with `[REDACTED_RuleID]`, where `RuleID` indicates the type of secret found (e.g., `[REDACTED_generic-api-key]`).
-- **Skipping Redaction**: You can disable this feature using the `-S` / `--skip-redaction` flag when running the command, or by pressing `S` in the interactive TUI. Use this option with caution, as it may expose sensitive information in the output.
+- **Skipping Redaction**: You can disable this feature using the `-S` / `--skip-redaction` flag when running the command, or by pressing <kbd>S</kbd> in the interactive TUI. Use this option with caution, as it may expose sensitive information in the output.
 
 ## 🎨 Themes
 
@@ -208,7 +235,7 @@ CodeGrab comes with several built-in themes:
 Select a theme using the `--theme` flag:
 
 ```sh
-grab --theme=dracula
+grab --theme dracula
 ```
 
 ## 📄 Output Formats
