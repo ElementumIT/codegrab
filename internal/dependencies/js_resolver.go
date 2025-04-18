@@ -16,6 +16,10 @@ type JSResolver struct{}
 
 // Resolve finds TS/JS dependencies.
 func (r *JSResolver) Resolve(fileContent []byte, filePath string, projectRoot string, projectModuleName string) ([]string, error) {
+	if len(fileContent) == 0 {
+		return []string{}, nil
+	}
+
 	dependencies := make(map[string]struct{})
 
 	parser := sitter.NewParser()
@@ -25,34 +29,44 @@ func (r *JSResolver) Resolve(fileContent []byte, filePath string, projectRoot st
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JS/TS file %s: %w", filePath, err)
 	}
+	defer tree.Close()
+
+	if tree.RootNode().HasError() {
+		return nil, fmt.Errorf("parsing error detected in JS/TS file %s", filePath)
+	}
 
 	// Query to find import/require/export sources
 	queryStr := `
         [
-          (import_statement source: (string (string_fragment) @import_path))
+          (import_statement source: (string (string_fragment)? @import_path))
 
           (call_expression
-            function: [
-              (identifier) @id         ; Capture direct identifier
-              (member_expression       ; Or capture property identifier in member expr
-                 property: (property_identifier) @id)
-            ]
-            arguments: (arguments (string (string_fragment) @import_path))
-            (#eq? @id "require")       ; Check if the captured @id is "require"
+            function: [(identifier)@id (member_expression property: (property_identifier)@id)]
+            arguments: (arguments (string (string_fragment)? @import_path))
+            (#eq? @id "require")
           )
 
-          (export_statement source: (string (string_fragment) @import_path))
+          (export_statement source: (string (string_fragment)? @import_path))
+
+          (call_expression ; Dynamic import
+            function: (import)
+            arguments: (arguments (string (string_fragment)? @import_path))
+          )
         ] @import
     `
 	query, err := sitter.NewQuery([]byte(queryStr), tsx.GetLanguage())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create JS/TS query: %w", err)
 	}
+	defer query.Close()
 
 	qc := sitter.NewQueryCursor()
 	qc.Exec(query, tree.RootNode())
+	defer qc.Close()
 
 	importPaths := []string{}
+	processedCaptures := make(map[uintptr]struct{})
+
 	for {
 		match, ok := qc.NextMatch()
 		if !ok {
@@ -61,12 +75,18 @@ func (r *JSResolver) Resolve(fileContent []byte, filePath string, projectRoot st
 
 		for _, capture := range match.Captures {
 			node := capture.Node
-			nodeName := query.CaptureNameForId(capture.Index)
+			captureName := query.CaptureNameForId(capture.Index)
 
-			if nodeName == "import_path" {
+			nodeID := node.ID()
+			if _, processed := processedCaptures[nodeID]; processed {
+				continue
+			}
+
+			if captureName == "import_path" {
 				importPath := node.Content(fileContent)
 				if importPath != "" {
 					importPaths = append(importPaths, importPath)
+					processedCaptures[nodeID] = struct{}{}
 				}
 			}
 		}
@@ -75,15 +95,14 @@ func (r *JSResolver) Resolve(fileContent []byte, filePath string, projectRoot st
 	containingDir := filepath.Dir(filepath.Join(projectRoot, filePath))
 
 	for _, importPath := range importPaths {
-		// Skip non-relative paths (likely node_modules or aliases)
-		// TODO: Add support for tsconfig path aliases
 		if !strings.HasPrefix(importPath, "./") && !strings.HasPrefix(importPath, "../") {
 			continue
 		}
 
 		resolvedRelPath := resolveJSPath(importPath, containingDir, projectRoot)
 		if resolvedRelPath != "" {
-			if filepath.Join(projectRoot, resolvedRelPath) != filepath.Join(projectRoot, filePath) {
+			normalizedSourcePath := filepath.ToSlash(filepath.Clean(filePath))
+			if resolvedRelPath != normalizedSourcePath {
 				dependencies[resolvedRelPath] = struct{}{}
 			}
 		}
@@ -97,12 +116,17 @@ func (r *JSResolver) Resolve(fileContent []byte, filePath string, projectRoot st
 	return depList, nil
 }
 
-// resolveJSPath attempts to resolve a relative TS/JS import path to an existing file.
+var allowedJSExtensions = map[string]bool{
+	".ts":  true,
+	".tsx": true,
+	".js":  true,
+	".jsx": true,
+}
+
 func resolveJSPath(importPath, containingDir, projectRoot string) string {
-	extensions := []string{".ts", ".tsx", ".js", ".jsx", ""}
 	basePath := filepath.Join(containingDir, importPath)
 
-	for _, ext := range extensions {
+	for ext := range allowedJSExtensions {
 		potentialPath := basePath + ext
 		if fileExists(potentialPath) {
 			if relPath, ok := normalizePath(potentialPath, "", projectRoot); ok {
@@ -112,7 +136,7 @@ func resolveJSPath(importPath, containingDir, projectRoot string) string {
 	}
 
 	if info, err := os.Stat(basePath); err == nil && info.IsDir() {
-		for _, ext := range extensions {
+		for ext := range allowedJSExtensions {
 			potentialPath := filepath.Join(basePath, "index"+ext)
 			if fileExists(potentialPath) {
 				if relPath, ok := normalizePath(potentialPath, "", projectRoot); ok {
@@ -123,8 +147,10 @@ func resolveJSPath(importPath, containingDir, projectRoot string) string {
 	}
 
 	if fileExists(basePath) {
-		if relPath, ok := normalizePath(basePath, "", projectRoot); ok {
-			return relPath
+		if ext := filepath.Ext(basePath); allowedJSExtensions[ext] {
+			if relPath, ok := normalizePath(basePath, "", projectRoot); ok {
+				return relPath
+			}
 		}
 	}
 
