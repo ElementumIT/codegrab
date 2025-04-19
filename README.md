@@ -12,7 +12,7 @@
 
 When working with LLMs, sharing code context is essential for getting accurate responses. However,
 manually copying files or creating code snippets is tedious. CodeGrab streamlines this process by
-providing a clean Terminal UI (TUI), alongside a versatile command-line interface (CLI). This allows
+providing a clean TUI (Terminal UI), alongside a versatile CLI (Command-Line Interface). This allows
 you to easily select files from your project, generate well-formatted output, and copy it directly
 to your clipboard, ready for LLM processing.
 
@@ -30,7 +30,7 @@ to your clipboard, ready for LLM processing.
 - 🌲 **Directory Tree View**: Display a tree-style view of your project structure
 - 🧮 **Token Estimation**: Get estimated token count for LLM context windows
 - 🛡️ **Secret Detection & Redaction**: Uses [gitleaks](https://github.com/gitleaks/gitleaks) to identify potential secrets and prevent sharing sensitive information
-- 🔗 **Automatic Dependency Resolution**: Automatically include dependencies for Go, JS/TS when using the `--deps` flag
+- 🔗 **Dependency Resolution**: Automatically include dependencies for Go, JS/TS when using the `--deps` flag
 
 ## 📦 Installation
 
@@ -98,11 +98,11 @@ grab [options] [directory]
 | `-n, --non-interactive` | Run in non-interactive mode (grabs all files)                                           |
 | `-o, --output file`     | Output file path (default: `./codegrab-output.<format>`)                                |
 | `-t, --temp`            | Use system temporary directory for output file                                          |
-| `-g, --glob pattern`    | Include/exclude files and directories (e.g., `--glob="*.{ts,tsx}" --glob="!*.spec.ts"`) |
+| `-g, --glob pattern`    | Include/exclude files and directories (e.g., `--glob="*.{ts,tsx}" --glob="\!*.spec.ts"`) |
 | `-f, --format format`   | Output format (available: markdown, text, xml)                                          |
 | `-S, --skip-redaction`  | Skip automatic secret redaction (WARNING: This may expose sensitive information)        |
-| `--deps`                | Automatically include direct dependencies (Go, JS/TS).                                  |
-| `--max-depth depth`     | Maximum depth for dependency resolution (-1 for unlimited, default: 1).                 |
+| `--deps`                | Automatically include direct dependencies (Go, JS/TS)                                   |
+| `--max-depth depth`     | Maximum depth for dependency resolution (-1 for unlimited, default: 1)                  |
 | `--theme`               | Set the UI theme                                                                        |
 
 ### 📖 Examples
@@ -150,8 +150,9 @@ grab [options] [directory]
    ```
 
 8. Use multiple glob patterns for include/exclude:
+
    ```bash
-   grab -g="*.{ts,tsx}" -g="!*.spec.{ts,tsx}"
+   grab -g="*.{ts,tsx}" -g="\!*.spec.{ts,tsx}"
    ```
 
 ## ⌨️ Keyboard Controls
@@ -195,6 +196,7 @@ grab [options] [directory]
 | :------------------------- | :----------- | :------------------------------------------------ |
 | Toggle `.gitignore` filter | <kbd>i</kbd> | Toggle whether to respect `.gitignore` rules      |
 | Toggle hidden files        | <kbd>.</kbd> | Toggle visibility of hidden files and directories |
+| Refresh files & folders    | <kbd>r</kbd> | Reload directory tree and reset selections        |
 | Toggle help screen         | <kbd>?</kbd> | Show or hide the help screen                      |
 | Quit                       | <kbd>q</kbd> | Exit the application                              |
 
