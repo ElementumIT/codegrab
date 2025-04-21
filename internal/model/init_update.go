@@ -141,6 +141,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.searchInput.Blur()
 				m.searchInput.SetValue("")
 				m.searchResults = nil
+				m.cursor = 0
+				m.viewport.GotoTop()
 				m.collapseAllDirectories()
 				m.refreshViewportContent()
 				return m, nil
@@ -200,6 +202,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.deselected = make(map[string]bool)
 			m.isDependency = make(map[string]bool)
 			m.cursor = 0
+			m.viewport.GotoTop()
 			return m, tea.Sequence(
 				m.reloadFiles(),
 				func() tea.Msg { return refreshMsg{} },
@@ -257,6 +260,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.searchInput.Focus()
 			m.searchInput.SetValue("")
 			m.searchResults = nil
+			m.cursor = 0
+			m.viewport.GotoTop()
 			m.expandAllDirectories()
 			m.refreshViewportContent()
 			return m, nil
@@ -278,11 +283,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.useGitIgnore = !m.useGitIgnore
 			m.generator.UseGitIgnore = m.useGitIgnore
 			m.filterSelections()
+			m.cursor = 0
+			m.viewport.GotoTop()
 			return m, m.reloadFiles()
 		case ".":
 			m.showHidden = !m.showHidden
 			m.generator.ShowHidden = m.showHidden
 			m.filterSelections()
+			m.cursor = 0
+			m.viewport.GotoTop()
 			return m, m.reloadFiles()
 		case "D":
 			m.resolveDeps = !m.resolveDeps
