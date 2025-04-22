@@ -20,8 +20,8 @@ to your clipboard, ready for LLM processing.
 
 - 🎮 **Interactive Mode**: Navigate your project structure with vim-like keybindings in a
   TUI environment
-- 🧹 **Filtering Options**: Respect `.gitignore` rules, handle hidden files, and apply customizable glob
-  patterns
+- 🧹 **Filtering Options**: Respect `.gitignore` rules, handle hidden files, apply customizable glob
+  patterns, and skip large files
 - 🔍 **Fuzzy Search**: Quickly find files across your project
 - ✅ **File Selection**: Toggle files or entire directories (with child items) for inclusion or exclusion
 - 📄 **Multiple Output Formats**: Generate Markdown, Plain Text, or XML output
@@ -59,7 +59,7 @@ cd codegrab
 go build ./cmd/grab
 ```
 
-Then move the binary to your `PATH`
+Then move the binary to your `PATH`.
 
 ## 🚀 Quick Start
 
@@ -69,9 +69,9 @@ Then move the binary to your `PATH`
    grab
    ```
 
-2. Navigate with <kbd>h</kbd>/<kbd>j</kbd>/<kbd>k</kbd>/<kbd>l</kbd>
-3. Select files using the <kbd>Space</kbd> or <kbd>Tab</kbd> key
-4. Press <kbd>g</kbd> to generate output file or <kbd>y</kbd> to copy contents to clipboard
+2. Navigate with arrow keys or <kbd>h</kbd>/<kbd>j</kbd>/<kbd>k</kbd>/<kbd>l</kbd>.
+3. Select files using the <kbd>Space</kbd> or <kbd>Tab</kbd> key.
+4. Press <kbd>g</kbd> to generate output file or <kbd>y</kbd> to copy contents to clipboard.
 
 CodeGrab will generate `codegrab-output.md` in your current working directory (on macOS this file is automatically copied to your clipboard), which you can immediately send to an AI assistant for better context-aware coding assistance.
 
@@ -85,25 +85,26 @@ grab [options] [directory]
 
 ### Arguments
 
-| Argument    | Description                                                        |
-| :---------- | :----------------------------------------------------------------- |
-| `directory` | Path to the project directory (default: current working directory) |
+| Argument    | Description                                           |
+| :---------- | :---------------------------------------------------- |
+| `directory` | Optional path to the project directory (default: ".") |
 
 ### Options
 
-| Option                  | Description                                                                             |
-| :---------------------- | :-------------------------------------------------------------------------------------- |
-| `-h, --help`            | Display help information                                                                |
-| `-v, --version`         | Display version information                                                             |
-| `-n, --non-interactive` | Run in non-interactive mode (grabs all files)                                           |
-| `-o, --output file`     | Output file path (default: `./codegrab-output.<format>`)                                |
-| `-t, --temp`            | Use system temporary directory for output file                                          |
-| `-g, --glob pattern`    | Include/exclude files and directories (e.g., `--glob="*.{ts,tsx}" --glob="\!*.spec.ts"`) |
-| `-f, --format format`   | Output format (available: markdown, text, xml)                                          |
-| `-S, --skip-redaction`  | Skip automatic secret redaction (WARNING: This may expose sensitive information)        |
-| `--deps`                | Automatically include direct dependencies (Go, JS/TS)                                   |
-| `--max-depth depth`     | Maximum depth for dependency resolution (-1 for unlimited, default: 1)                  |
-| `--theme`               | Set the UI theme                                                                        |
+| Option                   | Description                                                                                                                                                           |
+| :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-h, --help`             | Display help information.                                                                                                                                             |
+| `-v, --version`          | Display version information.                                                                                                                                          |
+| `-n, --non-interactive`  | Run in non-interactive mode (selects all valid files respecting filters).                                                                                             |
+| `-o, --output <file>`    | Output file path (default: `./codegrab-output.<format>`).                                                                                                             |
+| `-t, --temp`             | Use system temporary directory for output file.                                                                                                                       |
+| `-g, --glob <pattern>`   | Include/exclude files and directories using glob patterns. Can be used multiple times. Prefix with '!' to exclude (e.g., `--glob="*.{ts,tsx}" --glob="\!*.spec.ts"`). |
+| `-f, --format <format>`  | Output format. Available: `markdown`, `text`, `xml` (default: `"markdown"`).                                                                                          |
+| `-S, --skip-redaction`   | Skip automatic secret redaction via gitleaks (Default: false). WARNING: Disabling this may expose sensitive information!                                              |
+| `--deps`                 | Automatically include direct dependencies for selected files (Go, JS/TS).                                                                                             |
+| `--max-depth <depth>`    | Maximum depth for dependency resolution (`-1` for unlimited, default: `1`). Only effective with `--deps`.                                                             |
+| `--max-file-size <size>` | Maximum file size to include (e.g., `"100kb"`, `"2MB"`). No limit by default. Files exceeding the specified size will be skipped.                                     |
+| `--theme <name>`         | Set the UI theme. Available: catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha, dracula, nord. (default: `"catppuccin-mocha"`).             |
 
 ### 📖 Examples
 
@@ -113,22 +114,22 @@ grab [options] [directory]
    grab
    ```
 
-2. Grab all files in current directory (non-interactive):
+2. Grab all files in current directory (non-interactive), skipping files > 50kb:
 
    ```bash
-   grab -n
+   grab -n --max-file-size 50kb
    ```
 
-3. Grab a specific directory interactively:
+3. Grab a specific directory interactively including dependencies:
 
    ```bash
-   grab /path/to/project
+   grab --deps /path/to/project
    ```
 
 4. Grab a specific directory non-interactively including all dependencies (unlimited depth):
 
    ```bash
-   grab -n --deps --max-depth -1
+   grab -n --deps --max-depth -1 /path/to/project
    ```
 
 5. Specify custom output file:
@@ -171,13 +172,13 @@ grab [options] [directory]
 
 ### Search
 
-| Action                 | Key                               | Description                                            |
-| :--------------------- | :-------------------------------- | :----------------------------------------------------- |
-| Start search           | <kbd>/</kbd>                      | Begin searching for files                              |
-| Next search result     | <kbd>ctrl+n</kbd> or <kbd>↓</kbd> | Navigate to the next search result                     |
-| Previous search result | <kbd>ctrl+p</kbd> or <kbd>↑</kbd> | Navigate to the previous search result                 |
-| Select/deselect file   | <kbd>tab</kbd>                    | Toggle selection of the current file in search results |
-| Exit search            | <kbd>esc</kbd>                    | Exit search mode and return to normal navigation       |
+| Action                 | Key                               | Description                                                 |
+| :--------------------- | :-------------------------------- | :---------------------------------------------------------- |
+| Start search           | <kbd>/</kbd>                      | Begin fuzzy searching for files                             |
+| Next search result     | <kbd>ctrl+n</kbd> or <kbd>↓</kbd> | Navigate to the next search result                          |
+| Previous search result | <kbd>ctrl+p</kbd> or <kbd>↑</kbd> | Navigate to the previous search result                      |
+| Select/deselect item   | <kbd>tab</kbd> / <kbd>enter</kbd> | Toggle selection of the item under cursor in search results |
+| Exit search            | <kbd>esc</kbd>                    | Exit search mode and return to normal navigation            |
 
 ### Selection & Output
 
@@ -192,19 +193,19 @@ grab [options] [directory]
 
 ### View Options
 
-| Action                     | Key          | Description                                       |
-| :------------------------- | :----------- | :------------------------------------------------ |
-| Toggle `.gitignore` filter | <kbd>i</kbd> | Toggle whether to respect `.gitignore` rules      |
-| Toggle hidden files        | <kbd>.</kbd> | Toggle visibility of hidden files and directories |
-| Refresh files & folders    | <kbd>r</kbd> | Reload directory tree and reset selections        |
-| Toggle help screen         | <kbd>?</kbd> | Show or hide the help screen                      |
-| Quit                       | <kbd>q</kbd> | Exit the application                              |
+| Action                     | Key                              | Description                                  |
+| :------------------------- | :------------------------------- | :------------------------------------------- |
+| Toggle `.gitignore` filter | <kbd>i</kbd>                     | Toggle whether to respect `.gitignore` rules |
+| Toggle hidden files        | <kbd>.</kbd>                     | Toggle visibility of hidden files            |
+| Refresh files & folders    | <kbd>r</kbd>                     | Reload directory tree and reset selections   |
+| Toggle help screen         | <kbd>?</kbd>                     | Show or hide the help screen                 |
+| Quit                       | <kbd>q</kbd> / <kbd>ctrl+c</kbd> | Exit the application                         |
 
 ## 🔗 Automatic Dependency Resolution
 
 CodeGrab can automatically include dependencies for selected files, making it easier to share complete code snippets with LLMs.
 
-- **How it works**: When enabled, CodeGrab utilizes [tree-sitter](https://tree-sitter.github.io/tree-sitter/) to parse selected source files, identifying language-specific dependency declarations (like `import` or `require`). It then attempts to resolve these dependencies within your project and automatically includes the necessary files.
+- **How it works**: When enabled, CodeGrab utilizes [tree-sitter](https://tree-sitter.github.io/tree-sitter/) to parse selected source files, identifying language-specific dependency declarations (like `import` or `require`). It then attempts to resolve these dependencies within your project and automatically includes the necessary files (respecting `.gitignore`, hidden, size, and glob filters).
 - **Supported Languages**:
   - **Go**: Resolves relative imports and project-local module imports (if `go.mod` is present).
   - **JavaScript/TypeScript**: Resolves relative imports/requires for `.js`, `.jsx`, `.ts`, and `.tsx` files, including directory `index` files.
