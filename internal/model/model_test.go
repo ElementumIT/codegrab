@@ -1,6 +1,7 @@
 package model
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -271,8 +272,9 @@ func TestToggleSelection(t *testing.T) {
 	}
 
 	config := Config{
-		RootPath:  tempDir,
-		FilterMgr: filesystem.NewFilterManager(),
+		RootPath:    tempDir,
+		FilterMgr:   filesystem.NewFilterManager(),
+		MaxFileSize: math.MaxInt64,
 	}
 	m := NewModel(config)
 	m.files = fileItems

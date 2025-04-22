@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +29,7 @@ func TestWalkDirectory(t *testing.T) {
 			if err := os.MkdirAll(dir, 0755); err != nil {
 				t.Fatalf("Failed to create directory %s: %v", dir, err)
 			}
-			if err := os.WriteFile(path, []byte("test content"), 0644); err != nil {
+			if err := os.WriteFile(path, []byte("test content "+file), 0644); err != nil {
 				t.Fatalf("Failed to create file %s: %v", path, err)
 			}
 		}
@@ -48,6 +49,7 @@ func TestWalkDirectory(t *testing.T) {
 			useGitIgnore bool
 			showHidden   bool
 			shouldExist  bool
+			maxFileSize  int64
 		}{
 			{
 				name:         "Filter Go files only",
@@ -56,6 +58,7 @@ func TestWalkDirectory(t *testing.T) {
 				expectedLen:  3,
 				checkFile:    "file2.go",
 				shouldExist:  true,
+				maxFileSize:  math.MaxInt64,
 			},
 			{
 				name:         "Show hidden files",
@@ -64,15 +67,22 @@ func TestWalkDirectory(t *testing.T) {
 				expectedLen:  4,
 				checkFile:    ".hidden",
 				shouldExist:  true,
+				maxFileSize:  math.MaxInt64,
 			},
 		}
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				files, err := WalkDirectory(tempDir, gitIgnore, filter, tc.useGitIgnore, tc.showHidden)
+				files, err := WalkDirectory(tempDir, gitIgnore, filter, tc.useGitIgnore, tc.showHidden, tc.maxFileSize)
 				if err != nil {
 					t.Fatalf("WalkDirectory failed: %v", err)
 				}
+
+				var foundPaths []string
+				for _, f := range files {
+					foundPaths = append(foundPaths, f.Path)
+				}
+				t.Logf("Found files (%d): %v", len(files), foundPaths)
 
 				if len(files) != tc.expectedLen {
 					t.Errorf("Expected %d files, got %d", tc.expectedLen, len(files))
@@ -101,7 +111,7 @@ func TestWalkDirectory(t *testing.T) {
 		filter := NewFilterManager()
 		gitIgnore, _ := NewGitIgnoreManager(".")
 
-		_, err := WalkDirectory("/path/that/does/not/exist", gitIgnore, filter, false, false)
+		_, err := WalkDirectory("/path/that/does/not/exist", gitIgnore, filter, false, false, math.MaxInt64)
 		if err == nil {
 			t.Error("Expected error for non-existent directory, got nil")
 		}
