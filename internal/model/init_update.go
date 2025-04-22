@@ -242,6 +242,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(m.collapsed) > 0 {
 				m.expandAllDirectories()
 			} else {
+				m.cursor = 0
+				m.viewport.GotoTop()
 				m.collapseAllDirectories()
 			}
 			m.ensureCursorVisible()
@@ -273,8 +275,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.refreshViewportContent()
 			}
 		case "esc":
-			m.showHelp = false
-			m.refreshViewportContent()
+			if m.showHelp {
+				m.showHelp = false
+				m.refreshViewportContent()
+			}
 		case "y":
 			return m, m.copyOutputToClipboard()
 		case "g":
@@ -300,6 +304,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.successMsg = "Dependency resolution disabled"
 			}
+			m.buildDisplayNodes()
 			m.refreshViewportContent()
 		case "F":
 			formatNames := formats.GetFormatNames()
@@ -339,7 +344,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) reloadFiles() tea.Cmd {
 	return func() tea.Msg {
-		files, err := filesystem.WalkDirectory(m.rootPath, m.gitIgnoreMgr, m.filterMgr, m.useGitIgnore, m.showHidden)
+		files, err := filesystem.WalkDirectory(m.rootPath, m.gitIgnoreMgr, m.filterMgr, m.useGitIgnore, m.showHidden, m.maxFileSize)
 		if err != nil {
 			return filesLoadedMsg{files: nil, err: fmt.Errorf("failed to reload files: %w", err)}
 		}

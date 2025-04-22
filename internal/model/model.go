@@ -48,6 +48,7 @@ type Model struct {
 	width             int
 	height            int
 	maxDepth          int
+	maxFileSize       int64
 	showHelp          bool
 	useGitIgnore      bool
 	showHidden        bool
@@ -63,6 +64,7 @@ type Config struct {
 	OutputPath    string
 	Format        string
 	MaxDepth      int
+	MaxFileSize   int64
 	UseTempFile   bool
 	SkipRedaction bool
 	ResolveDeps   bool
@@ -95,6 +97,7 @@ func NewModel(config Config) Model {
 		redactSecrets:     !config.SkipRedaction,
 		resolveDeps:       config.ResolveDeps,
 		maxDepth:          config.MaxDepth,
+		maxFileSize:       config.MaxFileSize,
 		projectModuleName: moduleName,
 		showHidden:        false,
 		searchInput:       ui.NewSearchInput(),
@@ -102,5 +105,6 @@ func NewModel(config Config) Model {
 			Width:  80,
 			Height: 10,
 		},
+		cursor: 0,
 	}
 }

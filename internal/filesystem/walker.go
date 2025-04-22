@@ -14,10 +14,11 @@ type FileItem struct {
 	Path  string
 	IsDir bool
 	Level int
+	Size  int64
 }
 
-// WalkDirectory traverses the root directory taking into account gitignore and hidden files.
-func WalkDirectory(root string, gitIgnore *GitIgnoreManager, filter *FilterManager, useGitIgnore, showHidden bool) ([]FileItem, error) {
+// WalkDirectory traverses the root directory taking into account gitignore, hidden files, and max file size.
+func WalkDirectory(root string, gitIgnore *GitIgnoreManager, filter *FilterManager, useGitIgnore, showHidden bool, maxFileSize int64) ([]FileItem, error) {
 	var files []FileItem
 
 	if _, err := os.Stat(root); err != nil {
@@ -33,6 +34,7 @@ func WalkDirectory(root string, gitIgnore *GitIgnoreManager, filter *FilterManag
 			return nil
 		}
 
+		// Skip hidden directories/files
 		if !showHidden && strings.HasPrefix(info.Name(), ".") {
 			if info.IsDir() {
 				return filepath.SkipDir
@@ -40,6 +42,7 @@ func WalkDirectory(root string, gitIgnore *GitIgnoreManager, filter *FilterManag
 			return nil
 		}
 
+		// Skip gitignored paths
 		if useGitIgnore && gitIgnore != nil && gitIgnore.IsIgnored(path) {
 			if info.IsDir() {
 				return filepath.SkipDir
@@ -63,22 +66,32 @@ func WalkDirectory(root string, gitIgnore *GitIgnoreManager, filter *FilterManag
 				Path:  relPath,
 				IsDir: true,
 				Level: strings.Count(relPath, "/"),
+				Size:  info.Size(),
 			})
 			return nil
 		}
 
+		// Skip files larger than maxFileSize
+		if info.Size() > maxFileSize {
+			return nil
+		}
+
+		// Skip files not matching glob patterns
 		if !filter.ShouldInclude(relPath) {
 			return nil
 		}
 
+		// Skip non-text files
 		if ok, err := utils.IsTextFile(path); err != nil || !ok {
 			return nil
 		}
 
+		// Add the file if it passed all checks
 		files = append(files, FileItem{
 			Path:  relPath,
 			IsDir: false,
 			Level: strings.Count(relPath, "/"),
+			Size:  info.Size(),
 		})
 		return nil
 	})

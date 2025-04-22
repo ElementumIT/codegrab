@@ -16,17 +16,21 @@ type QueuedDep struct {
 	Depth int
 }
 
+// filterSelections removes items from selection/deselection maps if they
+// are filtered out by gitignore or hidden file settings.
 func (m *Model) filterSelections() {
 	for p := range m.selected {
+		fullPath := filepath.Join(m.rootPath, p)
 		if (!m.showHidden && utils.IsHiddenPath(p)) ||
-			(m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(filepath.Join(m.rootPath, p))) {
+			(m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(fullPath)) {
 			delete(m.selected, p)
 			delete(m.isDependency, p)
 		}
 	}
 	for p := range m.deselected {
+		fullPath := filepath.Join(m.rootPath, p)
 		if (!m.showHidden && utils.IsHiddenPath(p)) ||
-			(m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(filepath.Join(m.rootPath, p))) {
+			(m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(fullPath)) {
 			delete(m.deselected, p)
 		}
 	}
@@ -63,6 +67,10 @@ func (m *Model) getDirectDependencies(filePath string) ([]string, error) {
 	fullPath := filepath.Join(m.rootPath, filePath)
 	content, err := os.ReadFile(fullPath)
 	if err != nil {
+		info, statErr := os.Stat(fullPath)
+		if statErr == nil && info.Size() > m.maxFileSize {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("cannot read file %s for dependency resolution: %w", filePath, err)
 	}
 
@@ -128,14 +136,12 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 			if m.resolveDeps {
 				for _, filePath := range filesDeselectedInDir {
 					deps, _ := m.getDirectDependencies(filePath)
-					if deps != nil {
-						for _, depPath := range deps {
-							if m.isDependency[depPath] {
-								if parentDir := findParentDirectory(filepath.Join(m.rootPath, depPath), m.rootPath, m.selected); parentDir == "" {
-									delete(m.selected, depPath)
-									delete(m.isDependency, depPath)
-									m.deselected[depPath] = true
-								}
+					for _, depPath := range deps {
+						if m.isDependency[depPath] {
+							if parentDir := findParentDirectory(filepath.Join(m.rootPath, depPath), m.rootPath, m.selected); parentDir == "" {
+								delete(m.selected, depPath)
+								delete(m.isDependency, depPath)
+								m.deselected[depPath] = true
 							}
 						}
 					}
@@ -163,8 +169,14 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 					}
 
 					fFullPath := filepath.Join(m.rootPath, f.Path)
+					fInfo, fStatErr := os.Stat(fFullPath)
+					if fStatErr != nil {
+						continue
+					}
+
 					if (m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(fFullPath)) ||
 						(!m.showHidden && utils.IsHiddenPath(f.Path)) ||
+						(fInfo.Size() > m.maxFileSize) ||
 						!m.filterMgr.ShouldInclude(f.Path) {
 						continue
 					}
@@ -188,7 +200,6 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 		if m.selected[path] {
 			// Deselecting file
 			delete(m.selected, path)
-			wasDependency := m.isDependency[path]
 			delete(m.isDependency, path)
 
 			if parentDir := findParentDirectory(fullPath, m.rootPath, m.selected); parentDir != "" {
@@ -197,16 +208,14 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 				delete(m.deselected, path)
 			}
 
-			if m.resolveDeps && wasDependency {
+			if m.resolveDeps {
 				deps, _ := m.getDirectDependencies(path)
-				if deps != nil {
-					for _, depPath := range deps {
-						if m.isDependency[depPath] {
-							if parentDir := findParentDirectory(filepath.Join(m.rootPath, depPath), m.rootPath, m.selected); parentDir == "" {
-								delete(m.selected, depPath)
-								delete(m.isDependency, depPath)
-								m.deselected[depPath] = true
-							}
+				for _, depPath := range deps {
+					if m.isDependency[depPath] {
+						if parentDir := findParentDirectory(filepath.Join(m.rootPath, depPath), m.rootPath, m.selected); parentDir == "" {
+							delete(m.selected, depPath)
+							delete(m.isDependency, depPath)
+							m.deselected[depPath] = true
 						}
 					}
 				}
@@ -241,7 +250,7 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 
 		directDeps, err := m.getDirectDependencies(filePath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Warning resolving deps for %s: %v\n", filePath, err)
 			continue
 		}
 
@@ -251,6 +260,7 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 			if statErr != nil || info.IsDir() ||
 				(m.useGitIgnore && m.gitIgnoreMgr.IsIgnored(depFullPath)) ||
 				(!m.showHidden && utils.IsHiddenPath(depPath)) ||
+				(info.Size() > m.maxFileSize) ||
 				!m.filterMgr.ShouldInclude(depPath) {
 				continue
 			}
@@ -278,7 +288,11 @@ func (m *Model) expandAllDirectories() {
 	m.buildDisplayNodes()
 }
 
+// collapseAllDirectories adds all directory paths from m.files to the collapsed map.
 func (m *Model) collapseAllDirectories() {
+	if m.collapsed == nil {
+		m.collapsed = make(map[string]bool)
+	}
 	for _, node := range m.files {
 		if node.IsDir {
 			m.collapsed[node.Path] = true
