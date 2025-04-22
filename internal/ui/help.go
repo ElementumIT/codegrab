@@ -13,12 +13,12 @@ Search:
   /                        Start search
   ctrl+n / ↓               Next search result
   ctrl+p / ↑               Previous search result
-  tab                      Select/deselect file in search
-  esc                      Exit search
+  tab / enter              Select/deselect file in search results
+  esc                      Exit search mode
 
 Selection & Output:
   space / tab              Select/deselect file or directory
-  y                        Copy output to clipboard
+  y                        Copy generated output to clipboard
   g                        Generate output file
   D                        Toggle automatic dependency resolution (Go, TS/JS)
   F                        Cycle through output formats (md, txt, xml)
@@ -29,45 +29,50 @@ View Options:
   .                        Toggle hidden files
   r                        Refresh file list & reset selection
   ?                        Toggle help screen
-  q                        Quit`
+  q / ctrl+c               Quit`
 
 const UsageText = `Usage:
   grab [options] [directory]
 
   Options:
-    -h, --help               Display this help information
-    -n, --non-interactive    Run in non-interactive mode
-    -o, --output file        Output file path (default: current directory)
-    -t, --temp               Use system temporary directory for output file
-    -g, --glob pattern       Include/exclude files and directories
-                             (e.g., --glob="*.{ts,tsx}" --glob="\!*.spec.ts")
-    -f, --format format      Output format (available: markdown, text, xml)
-    -S, --skip-redaction     Skip automatic secret redaction (Default: false)
+    -h, --help               Display this help information.
+    -v, --version            Display version information.
+    -n, --non-interactive    Run in non-interactive mode (selects all valid files).
+    -o, --output <file>      Output file path (default: "./codegrab-output.<format>").
+    -t, --temp               Use system temporary directory for output file.
+    -g, --glob <pattern>     Include/exclude files using glob patterns. Can be used multiple times.
+                             Prefix with '!' to exclude (e.g., -g="*.go" -g="\!*_test.go").
+                             Supports brace expansion (e.g., -g="*.{ts,tsx}").
+    -f, --format <format>    Output format. Available: markdown, text, xml (default: "markdown").
+    -S, --skip-redaction     Skip automatic secret redaction via gitleaks (Default: false).
                              WARNING: This may expose sensitive information!
-    --deps                   Automatically include direct dependencies (Go, JS/TS)
-    --max-depth depth        Maximum depth for dependency resolution (-1 for unlimited, default: 1)
-    --theme                  Set the UI theme (available: catppuccin-latte,
-                             catppuccin-frappe, catppuccin-macchiato,
-                             catppuccin-mocha, dracula, nord)
+    --deps                   Automatically include direct dependencies for selected files (Go, JS/TS).
+    --max-depth <depth>      Maximum depth for dependency resolution (-1 for unlimited, default: 1).
+                             Only effective when --deps is used.
+    --max-file-size <size>   Maximum file size to include (e.g., "50kb", "2MB"). No limit by default.
+                             Files exceeding this size will be skipped if the limit is set.
+    --theme <name>           Set the UI theme. Available: catppuccin-latte, catppuccin-frappe,
+                             catppuccin-macchiato, catppuccin-mocha, dracula, nord.
+                             (default: "catppuccin-mocha").
 
   Examples:
-    # Grab files in current directory interactively
+    # Run interactively in the current directory
     grab
 
     # Grab all files in current directory (non-interactive)
     grab -n
 
-    # Grab specific directory interactively including dependencies
+    # Run interactively in a specific directory, resolving dependencies
     grab --deps /path/to/project
 
     # Specify custom output file
     grab -o output.md /path/to/project
 
-    # Generate XML output
-    grab -f xml -o output.xml /path/to/project
+    # Generate XML output in a temporary file
+    grab --temp -f xml
 
-    # Filter files using glob pattern
-    grab -g="*.go" /path/to/project
+    # Filter files using glob pattern, skipping files > 50kb
+    grab -g="*.go" --max-file-size 50kb 
 
     # Multiple glob patterns
     grab -g="*.{ts,tsx}" -g="\!*.spec.{ts,tsx}"`

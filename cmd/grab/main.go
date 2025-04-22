@@ -34,6 +34,7 @@ func (s *stringSliceFlag) Set(value string) error {
 func main() {
 	themes.Initialize()
 
+	var err error
 	var globPatterns stringSliceFlag
 	var showHelp bool
 	var showVersion bool
@@ -45,6 +46,7 @@ func main() {
 	var skipRedaction bool
 	var resolveDeps bool
 	var maxDepth int
+	var maxFileSizeStr string
 
 	flag.BoolVar(&showHelp, "help", false, "Display help information")
 	flag.BoolVar(&showHelp, "h", false, "Display help information (shorthand)")
@@ -80,6 +82,9 @@ func main() {
 	flag.BoolVar(&skipRedaction, "skip-redaction", false, "Skip automatic secret redaction (WARNING: this may expose secrets)")
 	flag.BoolVar(&skipRedaction, "S", false, "Skip automatic secret redaction (shorthand)")
 
+	maxFileSizeUsage := "Maximum file size to include (e.g., 50kb, 2MB). No limit by default."
+	flag.StringVar(&maxFileSizeStr, "max-file-size", "", maxFileSizeUsage)
+
 	flag.Parse()
 
 	if showHelp {
@@ -102,6 +107,15 @@ func main() {
 
 	if maxDepth < 0 {
 		maxDepth = math.MaxInt
+	}
+
+	// Default to no limit if the flag is not set
+	var maxFileSize int64 = math.MaxInt64
+	if maxFileSizeStr != "" {
+		maxFileSize, err = utils.ParseSizeString(maxFileSizeStr)
+		if err != nil {
+			log.Fatalf("Error parsing max file size %q: %v", maxFileSizeStr, err)
+		}
 	}
 
 	// Use current directory if no argument is provided
@@ -134,7 +148,7 @@ func main() {
 	}
 
 	if nonInteractive {
-		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName, skipRedaction, resolveDeps, maxDepth)
+		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName, skipRedaction, resolveDeps, maxDepth, maxFileSize)
 	} else {
 		config := model.Config{
 			RootPath:      root,
@@ -145,6 +159,7 @@ func main() {
 			SkipRedaction: skipRedaction,
 			ResolveDeps:   resolveDeps,
 			MaxDepth:      maxDepth,
+			MaxFileSize:   maxFileSize,
 		}
 
 		m := model.NewModel(config)
@@ -157,13 +172,13 @@ func main() {
 }
 
 // runNonInteractive processes files and generates output without user interaction
-func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool, formatName string, skipRedaction bool, resolveDeps bool, maxDepth int) {
+func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, outputPath string, useTempFile bool, formatName string, skipRedaction bool, resolveDeps bool, maxDepth int, maxFileSize int64) {
 	gitIgnoreMgr, err := filesystem.NewGitIgnoreManager(rootPath)
 	if err != nil {
 		log.Fatalf("Error reading .gitignore: %v\n", err)
 	}
 
-	files, err := filesystem.WalkDirectory(rootPath, gitIgnoreMgr, filterMgr, true, false)
+	files, err := filesystem.WalkDirectory(rootPath, gitIgnoreMgr, filterMgr, true, false, maxFileSize)
 	if err != nil {
 		log.Fatalf("Error walking directory: %v\n", err)
 	}
@@ -224,7 +239,8 @@ func runNonInteractive(rootPath string, filterMgr *filesystem.FilterManager, out
 				depInfo, statErr := os.Stat(depFullPath)
 				if statErr != nil || depInfo.IsDir() ||
 					(gitIgnoreMgr.IsIgnored(depFullPath)) ||
-					(utils.IsHiddenPath(depPath)) {
+					(utils.IsHiddenPath(depPath)) ||
+					(depInfo.Size() > maxFileSize) {
 					continue
 				}
 

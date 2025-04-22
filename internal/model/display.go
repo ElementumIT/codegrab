@@ -9,6 +9,11 @@ import (
 	"github.com/epilande/codegrab/internal/filesystem"
 )
 
+// buildDisplayNodes constructs a hierarchical view of files and directories for display.
+// It creates FileNode objects for each item, properly indented based on directory depth,
+// respects collapsed/expanded states of directories, marks selected/deselected items,
+// identifies dependencies, and sorts files and directories.
+// The resulting displayNodes slice is used for rendering the file tree in the UI.
 func (m *Model) buildDisplayNodes() {
 	m.displayNodes = nil
 	nodesToAdd := make(map[string]filesystem.FileItem)
