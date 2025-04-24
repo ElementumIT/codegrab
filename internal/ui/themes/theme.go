@@ -34,6 +34,8 @@ type ColorPalette struct {
 	Text      lipgloss.Color
 	Muted     lipgloss.Color
 	Highlight lipgloss.Color
+
+	HighlightBackground lipgloss.Color
 }
 
 // Theme interface provides colors for the UI

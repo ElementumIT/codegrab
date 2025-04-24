@@ -1,6 +1,9 @@
 package ui
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/ui/themes"
@@ -67,56 +70,104 @@ func GetStyleInfo() lipgloss.Style {
 		Bold(false)
 }
 
-// StyleCheckBox returns a styled checkbox based on the current theme
-func StyleCheckBox(checked bool) string {
-	if checked {
-		return lipgloss.NewStyle().
-			Foreground(themes.CurrentTheme.Colors().Success).
-			Render("[x]")
-	}
-	return lipgloss.NewStyle().
-		Foreground(themes.CurrentTheme.Colors().Text).
-		Render("[ ]")
-}
-
-// StylePartialCheckBox returns a styled partial checkbox for directories with selected children
-func StylePartialCheckBox() string {
-	return lipgloss.NewStyle().
-		Bold(true).
-		Foreground(themes.CurrentTheme.Colors().Info).
-		Render("[~]")
-}
-
-func StyleDirectoryName(name string) string {
-	return lipgloss.NewStyle().
-		Foreground(themes.CurrentTheme.Colors().Directory).
-		Render(name)
-}
-
 // StyleFileLine styles a file line based on its properties and the current theme
-func StyleFileLine(content string, isDir, isSelected, isDeselected, isCursor bool) string {
+func StyleFileLine(
+	rawCheckbox string,
+	treePrefix string,
+	rawDirIndicator string,
+	name string,
+	rawSuffix string,
+	isDir bool,
+	isSelected bool,
+	isCursor bool,
+	isPartialDir bool,
+	viewportWidth int,
+) string {
 	colors := themes.CurrentTheme.Colors()
-	style := lipgloss.NewStyle()
+
+	checkboxStyle := lipgloss.NewStyle()
+	switch rawCheckbox {
+	case "[x]":
+		checkboxStyle = checkboxStyle.Foreground(colors.Success)
+	case "[~]":
+		checkboxStyle = checkboxStyle.Foreground(colors.Info)
+	default:
+		checkboxStyle = checkboxStyle.Foreground(colors.Muted)
+	}
+
+	prefixStyle := lipgloss.NewStyle().Foreground(colors.Text)
+	dirIndicatorStyle := lipgloss.NewStyle().Foreground(colors.Directory)
+	nameStyle := lipgloss.NewStyle()
+	shouldBold := isSelected || isPartialDir
 
 	if isDir {
-		style = style.Foreground(colors.Directory)
-		if isSelected {
-			style = style.Bold(true).Foreground(colors.Border)
-		}
+		nameStyle = nameStyle.Foreground(colors.Directory)
 	} else {
-		if isSelected && !isDeselected {
-			style = style.Bold(true).Foreground(colors.Selected)
-		} else if isDeselected {
-			style = style.Foreground(colors.Deselected)
+		if isSelected {
+			nameStyle = nameStyle.Foreground(colors.Selected)
 		} else {
-			style = style.Foreground(colors.Text)
+			nameStyle = nameStyle.Foreground(colors.Text)
 		}
 	}
 
+	depIndicatorStyle := lipgloss.NewStyle().Foreground(colors.Muted)
+
 	if isCursor {
-		return style.Bold(true).Render(" ❯ " + content)
+		cursorBaseStyle := lipgloss.NewStyle().Background(colors.HighlightBackground).Bold(true)
+		cursorIndicator := cursorBaseStyle.Foreground(colors.Text).Render(" ❯ ")
+		cursorCheckboxStyle := checkboxStyle
+
+		if rawCheckbox == "[ ]" {
+			cursorCheckboxStyle = cursorCheckboxStyle.Foreground(colors.Text)
+		}
+
+		renderedCheckbox := cursorBaseStyle.Inherit(cursorCheckboxStyle).PaddingRight(1).Render(rawCheckbox)
+		renderedPrefix := cursorBaseStyle.Inherit(prefixStyle).Render(treePrefix)
+		renderedDirIndicator := cursorBaseStyle.Inherit(dirIndicatorStyle).Bold(false).Render(rawDirIndicator)
+		renderedName := cursorBaseStyle.Inherit(nameStyle).Render(name)
+		renderedDepIndicator := cursorBaseStyle.Inherit(depIndicatorStyle).Bold(false).Render(rawSuffix)
+
+		lineContent := fmt.Sprintf("%s%s%s%s%s",
+			renderedCheckbox,
+			renderedPrefix,
+			renderedDirIndicator,
+			renderedName,
+			renderedDepIndicator,
+		)
+
+		fullContentWidth := lipgloss.Width(cursorIndicator + lineContent)
+		paddingWidth := viewportWidth - fullContentWidth
+		if paddingWidth < 0 {
+			paddingWidth = 0
+		}
+		padding := cursorBaseStyle.Render(strings.Repeat(" ", paddingWidth))
+
+		return cursorIndicator + lineContent + padding
+	} else {
+		// Non-cursor line rendering
+		cursorIndicator := "   "
+
+		if shouldBold {
+			nameStyle = nameStyle.Bold(true)
+			checkboxStyle = checkboxStyle.Bold(true)
+		}
+
+		renderedCheckbox := checkboxStyle.PaddingRight(1).Render(rawCheckbox)
+		renderedPrefix := prefixStyle.Render(treePrefix)
+		renderedDirIndicator := dirIndicatorStyle.Render(rawDirIndicator)
+		renderedName := nameStyle.Render(name)
+		renderedDepIndicator := depIndicatorStyle.Render(rawSuffix)
+
+		lineContent := fmt.Sprintf("%s%s%s%s%s",
+			renderedCheckbox,
+			renderedPrefix,
+			renderedDirIndicator,
+			renderedName,
+			renderedDepIndicator,
+		)
+
+		return cursorIndicator + lineContent
 	}
-	return style.Render("   " + content)
 }
 
 // NewSearchInput creates a new search input with styling from the current theme

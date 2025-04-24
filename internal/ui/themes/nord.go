@@ -37,6 +37,8 @@ func NewNordTheme() Theme {
 			Text:      lipgloss.Color("#eceff4"), // nord6
 			Muted:     lipgloss.Color("#7b88a1"), // between nord3 and nord4
 			Highlight: lipgloss.Color("#88c0d0"), // nord8
+
+			HighlightBackground: lipgloss.Color("#3b4252"), // nord1
 		},
 	}
 }

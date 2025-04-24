@@ -37,6 +37,8 @@ func NewCatppuccinMacchiatoTheme() Theme {
 			Text:      lipgloss.Color("#cad3f5"), // text
 			Muted:     lipgloss.Color("#939ab7"), // overlay2
 			Highlight: lipgloss.Color("#f5bde6"), // pink
+
+			HighlightBackground: lipgloss.Color("#363a4f"), // surface0
 		},
 	}
 }

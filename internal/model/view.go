@@ -196,46 +196,57 @@ func (m *Model) refreshViewportContent() {
 
 		treePrefix := prefixBuilder.String() + treeBranch
 
-		dirIndicator := ""
+		rawDirIndicator := ""
 		if node.IsDir {
 			if m.collapsed[node.Path] {
-				dirIndicator = ui.StyleDirectoryName(" ")
+				rawDirIndicator = " "
 			} else {
-				dirIndicator = ui.StyleDirectoryName(" ")
+				rawDirIndicator = " "
 			}
 		}
 
-		var checkbox string
+		isPartialDir := !m.selected[node.Path] && dirsWithSelectedChildren[node.Path] && node.IsDir
+		rawCheckbox := "[ ]"
 		if node.IsDir {
 			if m.selected[node.Path] {
-				checkbox = ui.StyleCheckBox(true)
-			} else if dirsWithSelectedChildren[node.Path] {
-				checkbox = ui.StylePartialCheckBox()
-			} else {
-				checkbox = ui.StyleCheckBox(false)
+				rawCheckbox = "[x]"
+			} else if isPartialDir {
+				rawCheckbox = "[~]"
 			}
 		} else {
-			checkbox = ui.StyleCheckBox(node.Selected)
-		}
-
-		name := node.Name
-		depIndicator := ""
-		if node.IsDependency {
-			depIndicator = ui.GetStyleHelp().Render(" [dep]")
-		}
-		if node.IsDir {
-			name = ui.StyleDirectoryName(name + "/")
-			if count := dirSelectedCounts[node.Path]; count > 0 {
-				styledCount := ui.GetStyleHelp().Render(fmt.Sprintf("[%d]", count))
-				name = fmt.Sprintf("%s %s", name, styledCount)
+			if node.Selected {
+				rawCheckbox = "[x]"
 			}
 		}
 
-		isDeselected := !node.IsDir && m.deselected[node.Path]
+		rawName := node.Name
+		if node.IsDir {
+			rawName += "/"
+		}
 
-		lineContent := fmt.Sprintf("%s %s%s%s%s", checkbox, treePrefix, dirIndicator, name, depIndicator)
+		rawSuffix := ""
+		if node.IsDir {
+			if count := dirSelectedCounts[node.Path]; count > 0 {
+				rawSuffix = fmt.Sprintf(" [%d]", count)
+			}
+		} else if node.IsDependency {
+			rawSuffix = " [dep]"
+		}
 
-		rendered := ui.StyleFileLine(lineContent, node.IsDir, m.selected[node.Path], isDeselected, i == m.cursor)
+		isCursorLine := i == m.cursor
+
+		rendered := ui.StyleFileLine(
+			rawCheckbox,
+			treePrefix,
+			rawDirIndicator,
+			rawName,
+			rawSuffix,
+			node.IsDir,
+			m.selected[node.Path],
+			isCursorLine,
+			isPartialDir,
+			m.viewport.Width,
+		)
 		lines = append(lines, rendered)
 	}
 

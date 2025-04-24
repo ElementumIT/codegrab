@@ -33,6 +33,8 @@ func NewDraculaTheme() Theme {
 			Text:      lipgloss.Color("#f8f8f2"), // foreground
 			Muted:     lipgloss.Color("#6272a4"), // comment
 			Highlight: lipgloss.Color("#ff79c6"), // pink
+
+			HighlightBackground: lipgloss.Color("#44475a"), // current line
 		},
 	}
 }
