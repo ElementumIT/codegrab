@@ -37,6 +37,8 @@ func NewCatppuccinFrappeTheme() Theme {
 			Text:      lipgloss.Color("#c6d0f5"), // text
 			Muted:     lipgloss.Color("#949cbb"), // overlay2
 			Highlight: lipgloss.Color("#f4b8e4"), // pink
+
+			HighlightBackground: lipgloss.Color("#414559"), // surface0
 		},
 	}
 }

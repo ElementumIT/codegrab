@@ -37,6 +37,8 @@ func NewCatppuccinMochaTheme() Theme {
 			Text:      lipgloss.Color("#cdd6f4"), // text
 			Muted:     lipgloss.Color("#9399b2"), // overlay2
 			Highlight: lipgloss.Color("#f5c2e7"), // pink
+
+			HighlightBackground: lipgloss.Color("#313244"), // surface0
 		},
 	}
 }
