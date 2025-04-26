@@ -144,7 +144,10 @@ func main() {
 	filterMgr := filesystem.NewFilterManager()
 
 	for _, pattern := range globPatterns {
-		filterMgr.AddGlobPattern(pattern)
+		normalizedPattern, isValid := utils.NormalizeGlobPattern(pattern, root)
+		if isValid {
+			filterMgr.AddGlobPattern(normalizedPattern)
+		}
 	}
 
 	if nonInteractive {
