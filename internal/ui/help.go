@@ -52,8 +52,8 @@ const UsageText = `Usage:
     --max-file-size <size>   Maximum file size to include (e.g., "50kb", "2MB"). No limit by default.
                              Files exceeding this size will be skipped if the limit is set.
     --theme <name>           Set the UI theme. Available: catppuccin-latte, catppuccin-frappe,
-                             catppuccin-macchiato, catppuccin-mocha, dracula, nord.
-                             (default: "catppuccin-mocha").
+                             catppuccin-macchiato, catppuccin-mocha, rose-pine, rose-pine-dawn,
+	                           rose-pine-moon, dracula, nord. (default: "catppuccin-mocha").
 
   Examples:
     # Run interactively in the current directory

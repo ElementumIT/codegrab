@@ -18,10 +18,9 @@ to your clipboard, ready for LLM processing.
 
 ## ✨ Features
 
-- 🎮 **Interactive Mode**: Navigate your project structure with vim-like keybindings in a
-  TUI environment
-- 🧹 **Filtering Options**: Respect `.gitignore` rules, handle hidden files, apply customizable glob
-  patterns, and skip large files
+- 🎮 **Interactive Mode**: Navigate your project structure with vim-like keybindings in a TUI environment
+- 💻 **CLI Mode**: Run non-interactively (`-n` flag) to grab all valid files based on filters, ideal for scripting
+- 🧹 **Filtering Options**: Respect `.gitignore` rules, handle hidden files, apply customizable glob patterns, and skip large files
 - 🔍 **Fuzzy Search**: Quickly find files across your project
 - ✅ **File Selection**: Toggle files or entire directories (with child items) for inclusion or exclusion
 - 📄 **Multiple Output Formats**: Generate Markdown, Plain Text, or XML output
@@ -91,20 +90,20 @@ grab [options] [directory]
 
 ### Options
 
-| Option                   | Description                                                                                                                                                           |
-| :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-h, --help`             | Display help information.                                                                                                                                             |
-| `-v, --version`          | Display version information.                                                                                                                                          |
-| `-n, --non-interactive`  | Run in non-interactive mode (selects all valid files respecting filters).                                                                                             |
-| `-o, --output <file>`    | Output file path (default: `./codegrab-output.<format>`).                                                                                                             |
-| `-t, --temp`             | Use system temporary directory for output file.                                                                                                                       |
-| `-g, --glob <pattern>`   | Include/exclude files and directories using glob patterns. Can be used multiple times. Prefix with '!' to exclude (e.g., `--glob="*.{ts,tsx}" --glob="\!*.spec.ts"`). |
-| `-f, --format <format>`  | Output format. Available: `markdown`, `text`, `xml` (default: `"markdown"`).                                                                                          |
-| `-S, --skip-redaction`   | Skip automatic secret redaction via gitleaks (Default: false). WARNING: Disabling this may expose sensitive information!                                              |
-| `--deps`                 | Automatically include direct dependencies for selected files (Go, JS/TS).                                                                                             |
-| `--max-depth <depth>`    | Maximum depth for dependency resolution (`-1` for unlimited, default: `1`). Only effective with `--deps`.                                                             |
-| `--max-file-size <size>` | Maximum file size to include (e.g., `"100kb"`, `"2MB"`). No limit by default. Files exceeding the specified size will be skipped.                                     |
-| `--theme <name>`         | Set the UI theme. Available: catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha, dracula, nord. (default: `"catppuccin-mocha"`).             |
+| Option                   | Description                                                                                                                                                                                          |
+| :----------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-h, --help`             | Display help information.                                                                                                                                                                            |
+| `-v, --version`          | Display version information.                                                                                                                                                                         |
+| `-n, --non-interactive`  | Run in non-interactive mode (selects all valid files respecting filters).                                                                                                                            |
+| `-o, --output <file>`    | Output file path (default: `./codegrab-output.<format>`).                                                                                                                                            |
+| `-t, --temp`             | Use system temporary directory for output file.                                                                                                                                                      |
+| `-g, --glob <pattern>`   | Include/exclude files and directories using glob patterns. Can be used multiple times. Prefix with '!' to exclude (e.g., `--glob="*.{ts,tsx}" --glob="\!*.spec.ts"`).                                |
+| `-f, --format <format>`  | Output format. Available: `markdown`, `text`, `xml` (default: `"markdown"`).                                                                                                                         |
+| `-S, --skip-redaction`   | Skip automatic secret redaction via gitleaks (Default: false). WARNING: Disabling this may expose sensitive information!                                                                             |
+| `--deps`                 | Automatically include direct dependencies for selected files (Go, JS/TS).                                                                                                                            |
+| `--max-depth <depth>`    | Maximum depth for dependency resolution (`-1` for unlimited, default: `1`). Only effective with `--deps`.                                                                                            |
+| `--max-file-size <size>` | Maximum file size to include (e.g., `"100kb"`, `"2MB"`). No limit by default. Files exceeding the specified size will be skipped.                                                                    |
+| `--theme <name>`         | Set the UI theme. Available: catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha, rose-pine, rose-pine-dawn, rose-pine-moon, dracula, nord. (default: `"catppuccin-mocha"`). |
 
 ### 📖 Examples
 
@@ -234,6 +233,7 @@ CodeGrab comes with several built-in themes:
 - Catppuccin (Latte, Frappe, Macchiato, Mocha)
 - Dracula
 - Nord
+- Rosé Pine (Main, Moon, Dawn)
 
 Select a theme using the `--theme` flag:
 
