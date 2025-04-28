@@ -67,6 +67,9 @@ func Initialize() {
 	RegisterTheme("catppuccin-mocha", NewCatppuccinMochaTheme)
 	RegisterTheme("dracula", NewDraculaTheme)
 	RegisterTheme("nord", NewNordTheme)
+	RegisterTheme("rose-pine", NewRosePineTheme)
+	RegisterTheme("rose-pine-dawn", NewRosePineDawnTheme)
+	RegisterTheme("rose-pine-moon", NewRosePineMoonTheme)
 
 	// Set default theme
 	SetTheme("catppuccin-mocha")
