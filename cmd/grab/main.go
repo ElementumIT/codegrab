@@ -47,6 +47,7 @@ func main() {
 	var resolveDeps bool
 	var maxDepth int
 	var maxFileSizeStr string
+	var showTokenCount bool
 
 	flag.BoolVar(&showHelp, "help", false, "Display help information")
 	flag.BoolVar(&showHelp, "h", false, "Display help information (shorthand)")
@@ -84,6 +85,8 @@ func main() {
 
 	maxFileSizeUsage := "Maximum file size to include (e.g., 50kb, 2MB). No limit by default."
 	flag.StringVar(&maxFileSizeStr, "max-file-size", "", maxFileSizeUsage)
+
+	flag.BoolVar(&showTokenCount, "show-tokens", false, "Show the number of tokens for each file")
 
 	flag.Parse()
 
@@ -154,15 +157,16 @@ func main() {
 		runNonInteractive(root, filterMgr, outputPath, useTempFile, formatName, skipRedaction, resolveDeps, maxDepth, maxFileSize)
 	} else {
 		config := model.Config{
-			RootPath:      root,
-			FilterMgr:     filterMgr,
-			OutputPath:    outputPath,
-			UseTempFile:   useTempFile,
-			Format:        formatName,
-			SkipRedaction: skipRedaction,
-			ResolveDeps:   resolveDeps,
-			MaxDepth:      maxDepth,
-			MaxFileSize:   maxFileSize,
+			RootPath:       root,
+			FilterMgr:      filterMgr,
+			OutputPath:     outputPath,
+			UseTempFile:    useTempFile,
+			Format:         formatName,
+			SkipRedaction:  skipRedaction,
+			ResolveDeps:    resolveDeps,
+			MaxDepth:       maxDepth,
+			MaxFileSize:    maxFileSize,
+			ShowTokenCount: showTokenCount,
 		}
 
 		m := model.NewModel(config)

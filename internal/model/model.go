@@ -56,18 +56,20 @@ type Model struct {
 	isGrabbing        bool
 	redactSecrets     bool
 	resolveDeps       bool
+	showTokenCount    bool
 }
 
 type Config struct {
-	FilterMgr     *filesystem.FilterManager
-	RootPath      string
-	OutputPath    string
-	Format        string
-	MaxDepth      int
-	MaxFileSize   int64
-	UseTempFile   bool
-	SkipRedaction bool
-	ResolveDeps   bool
+	FilterMgr      *filesystem.FilterManager
+	RootPath       string
+	OutputPath     string
+	Format         string
+	MaxDepth       int
+	MaxFileSize    int64
+	UseTempFile    bool
+	SkipRedaction  bool
+	ResolveDeps    bool
+	ShowTokenCount bool
 }
 
 func NewModel(config Config) Model {
@@ -105,6 +107,7 @@ func NewModel(config Config) Model {
 			Width:  80,
 			Height: 10,
 		},
-		cursor: 0,
+		cursor:         0,
+		showTokenCount: config.ShowTokenCount,
 	}
 }

@@ -2,9 +2,9 @@ package model
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
-	"os"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/ui"
@@ -235,11 +235,13 @@ func (m *Model) refreshViewportContent() {
 			if node.IsDependency {
 				rawSuffix += " [dep]"
 			}
-			if ok, err := utils.IsTextFile(node.Path); ok && err == nil {
-				if contentBytes, err := os.ReadFile(node.Path); err == nil {
-					content := string(contentBytes)
-					tokensEstimate := utils.EstimateTokens(content)
-					rawSuffix += fmt.Sprintf(" [%d tokens]", tokensEstimate)
+			if m.showTokenCount {
+				if ok, err := utils.IsTextFile(node.Path); ok && err == nil {
+					if contentBytes, err := os.ReadFile(node.Path); err == nil {
+						content := string(contentBytes)
+						tokensEstimate := utils.EstimateTokens(content)
+						rawSuffix += fmt.Sprintf(" [%d tokens]", tokensEstimate)
+					}
 				}
 			}
 		}
