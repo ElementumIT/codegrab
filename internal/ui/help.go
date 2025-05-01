@@ -54,6 +54,7 @@ const UsageText = `Usage:
     --theme <name>           Set the UI theme. Available: catppuccin-latte, catppuccin-frappe,
                              catppuccin-macchiato, catppuccin-mocha, rose-pine, rose-pine-dawn,
 	                           rose-pine-moon, dracula, nord. (default: "catppuccin-mocha").
+    --show-tokens            Show the number of tokens for each file in file tree.
 
   Examples:
     # Run interactively in the current directory

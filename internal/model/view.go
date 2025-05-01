@@ -2,11 +2,13 @@ package model
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/ui"
+	"github.com/epilande/codegrab/internal/utils"
 )
 
 func (m Model) View() string {
@@ -229,10 +231,20 @@ func (m *Model) refreshViewportContent() {
 			if count := dirSelectedCounts[node.Path]; count > 0 {
 				rawSuffix = fmt.Sprintf(" [%d]", count)
 			}
-		} else if node.IsDependency {
-			rawSuffix = " [dep]"
+		} else {
+			if node.IsDependency {
+				rawSuffix += " [dep]"
+			}
+			if m.showTokenCount {
+				if ok, err := utils.IsTextFile(node.Path); ok && err == nil {
+					if contentBytes, err := os.ReadFile(node.Path); err == nil {
+						content := string(contentBytes)
+						tokensEstimate := utils.EstimateTokens(content)
+						rawSuffix += fmt.Sprintf(" [%d tokens]", tokensEstimate)
+					}
+				}
+			}
 		}
-
 		isCursorLine := i == m.cursor
 
 		rendered := ui.StyleFileLine(
