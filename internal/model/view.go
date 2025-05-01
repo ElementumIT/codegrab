@@ -229,7 +229,7 @@ func (m *Model) refreshViewportContent() {
 		rawSuffix := ""
 		if node.IsDir {
 			if count := dirSelectedCounts[node.Path]; count > 0 {
-				rawSuffix = fmt.Sprintf(" [%d 📄]", count)
+				rawSuffix = fmt.Sprintf(" [%d]", count)
 			}
 		} else {
 			if node.IsDependency {
