@@ -169,7 +169,7 @@ func (m *Model) refreshViewportContent() {
 	}
 
 	var lines []string
-	parentIsLast := make([]bool, 100)
+	parentIsLast := make(map[int]bool)
 
 	for i, node := range nodes {
 		var prefixBuilder strings.Builder
@@ -184,13 +184,9 @@ func (m *Model) refreshViewportContent() {
 		treeBranch := "├── "
 		if node.IsLast {
 			treeBranch = "└── "
-			if node.Level >= 0 {
-				parentIsLast[node.Level] = true
-			}
+			parentIsLast[node.Level] = true
 		} else {
-			if node.Level >= 0 {
-				parentIsLast[node.Level] = false
-			}
+			parentIsLast[node.Level] = false
 		}
 		for l := node.Level + 1; l < len(parentIsLast); l++ {
 			parentIsLast[l] = false
@@ -198,13 +194,16 @@ func (m *Model) refreshViewportContent() {
 
 		treePrefix := prefixBuilder.String() + treeBranch
 
-		rawDirIndicator := ""
-		if node.IsDir {
+		icon := node.Icon
+		iconColor := node.IconColor
+		if node.IsDir && icon == "" {
 			if m.collapsed[node.Path] {
-				rawDirIndicator = " "
+				icon = ""
 			} else {
-				rawDirIndicator = " "
+				icon = ""
 			}
+			// Fallback to use theme directory color
+			iconColor = ""
 		}
 
 		isPartialDir := !m.selected[node.Path] && dirsWithSelectedChildren[node.Path] && node.IsDir
@@ -250,7 +249,8 @@ func (m *Model) refreshViewportContent() {
 		rendered := ui.StyleFileLine(
 			rawCheckbox,
 			treePrefix,
-			rawDirIndicator,
+			icon,
+			iconColor,
 			rawName,
 			rawSuffix,
 			node.IsDir,
@@ -293,59 +293,76 @@ func (m *Model) getTotalFileCount() int {
 	return count
 }
 
+// getSelectedFileCount calculates the effective number of selected files.
+// This considers explicitly selected files, files within selected directories
+// (respecting search results), and excludes deselected files.
 func (m *Model) getSelectedFileCount() int {
-	selectedCount := 0
+	effectiveSelection := make(map[string]bool)
 
-	userSelectedFiles := make(map[string]bool)
-	for p, sel := range m.selected {
-		if sel && !m.isDependency[p] {
-			userSelectedFiles[p] = true
-		}
-	}
-	selectedDirs := make(map[string]bool)
-	for p := range userSelectedFiles {
-		for _, f := range m.files {
-			if f.Path == p && f.IsDir {
-				selectedDirs[p] = true
-				break
-			}
+	searchResultPaths := make(map[string]bool)
+	useSearchResults := m.isSearching && len(m.searchResults) > 0
+	if useSearchResults {
+		for _, node := range m.searchResults {
+			searchResultPaths[node.Path] = true
 		}
 	}
 
-	for _, file := range m.files {
-		if file.IsDir {
+	for _, item := range m.files {
+		if effectiveSelection[item.Path] {
 			continue
 		}
 
-		if m.deselected[file.Path] {
+		if m.deselected[item.Path] {
 			continue
 		}
 
-		if m.selected[file.Path] {
-			selectedCount++
-			continue
-		}
-
-		currentDir := filepath.Dir(file.Path)
-		isInSelectedDir := false
-		for currentDir != "." && currentDir != "/" {
-			if selectedDirs[currentDir] {
-				isInSelectedDir = true
-				break
-			}
-			currentDir = filepath.Dir(currentDir)
-		}
-
-		if isInSelectedDir {
-			if m.isSearching && len(m.searchResults) > 0 {
-				if m.isInSearchResults(file.Path) {
-					selectedCount++
+		if useSearchResults && !searchResultPaths[item.Path] {
+			isChildOfSearchResult := false
+			parent := filepath.Dir(item.Path)
+			for parent != "." && parent != "/" {
+				if searchResultPaths[parent] {
+					isChildOfSearchResult = true
+					break
 				}
+				parent = filepath.Dir(parent)
+			}
+			if !isChildOfSearchResult {
+				continue
+			}
+		}
+
+		if m.selected[item.Path] {
+			if !item.IsDir {
+				effectiveSelection[item.Path] = true
 			} else {
-				selectedCount++
+				prefix := item.Path + string(os.PathSeparator)
+				for _, child := range m.files {
+					if !child.IsDir && strings.HasPrefix(child.Path, prefix) && !m.deselected[child.Path] {
+						if useSearchResults && !searchResultPaths[child.Path] {
+							continue
+						}
+						effectiveSelection[child.Path] = true
+					}
+				}
+			}
+			continue
+		}
+
+		if !item.IsDir {
+			parent := filepath.Dir(item.Path)
+			isInSelectedDir := false
+			for parent != "." && parent != "/" {
+				if m.selected[parent] {
+					isInSelectedDir = true
+					break
+				}
+				parent = filepath.Dir(parent)
+			}
+			if isInSelectedDir {
+				effectiveSelection[item.Path] = true
 			}
 		}
 	}
 
-	return selectedCount
+	return len(effectiveSelection)
 }
