@@ -18,6 +18,8 @@ import (
 type FileNode struct {
 	Path         string
 	Name         string
+	Icon         string
+	IconColor    string
 	Level        int
 	IsDir        bool
 	IsLast       bool
@@ -52,6 +54,7 @@ type Model struct {
 	showHelp          bool
 	useGitIgnore      bool
 	showHidden        bool
+	showIcons         bool
 	isSearching       bool
 	isGrabbing        bool
 	redactSecrets     bool
@@ -69,6 +72,7 @@ type Config struct {
 	UseTempFile    bool
 	SkipRedaction  bool
 	ResolveDeps    bool
+	ShowIcons      bool
 	ShowTokenCount bool
 }
 
@@ -98,6 +102,7 @@ func NewModel(config Config) Model {
 		generator:         gen,
 		redactSecrets:     !config.SkipRedaction,
 		resolveDeps:       config.ResolveDeps,
+		showIcons:         config.ShowIcons,
 		maxDepth:          config.MaxDepth,
 		maxFileSize:       config.MaxFileSize,
 		projectModuleName: moduleName,

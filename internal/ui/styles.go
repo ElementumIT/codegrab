@@ -74,7 +74,8 @@ func GetStyleInfo() lipgloss.Style {
 func StyleFileLine(
 	rawCheckbox string,
 	treePrefix string,
-	rawDirIndicator string,
+	icon string,
+	iconColor string,
 	name string,
 	rawSuffix string,
 	isDir bool,
@@ -86,6 +87,11 @@ func StyleFileLine(
 	colors := themes.CurrentTheme.Colors()
 
 	checkboxStyle := lipgloss.NewStyle()
+	prefixStyle := lipgloss.NewStyle().Foreground(colors.Text)
+	nameStyle := lipgloss.NewStyle()
+	suffixStyle := lipgloss.NewStyle().Foreground(colors.Muted)
+	iconStyle := lipgloss.NewStyle()
+
 	switch rawCheckbox {
 	case "[x]":
 		checkboxStyle = checkboxStyle.Foreground(colors.Success)
@@ -95,11 +101,17 @@ func StyleFileLine(
 		checkboxStyle = checkboxStyle.Foreground(colors.Muted)
 	}
 
-	prefixStyle := lipgloss.NewStyle().Foreground(colors.Text)
-	dirIndicatorStyle := lipgloss.NewStyle().Foreground(colors.Directory)
-	nameStyle := lipgloss.NewStyle()
-	shouldBold := isSelected || isPartialDir
+	if iconColor != "" {
+		iconStyle = iconStyle.Foreground(lipgloss.Color(iconColor))
+	} else {
+		if isDir {
+			iconStyle = iconStyle.Foreground(colors.Directory)
+		} else {
+			iconStyle = iconStyle.Foreground(colors.File)
+		}
+	}
 
+	shouldBold := isSelected || isPartialDir
 	if isDir {
 		nameStyle = nameStyle.Foreground(colors.Directory)
 	} else {
@@ -109,64 +121,67 @@ func StyleFileLine(
 			nameStyle = nameStyle.Foreground(colors.Text)
 		}
 	}
+	if shouldBold {
+		nameStyle = nameStyle.Bold(true)
+		checkboxStyle = checkboxStyle.Bold(true)
+	}
 
-	depIndicatorStyle := lipgloss.NewStyle().Foreground(colors.Muted)
+	renderedCheckbox := checkboxStyle.PaddingRight(1).Render(rawCheckbox)
+	renderedPrefix := prefixStyle.Render(treePrefix)
+	renderedIcon := ""
+	if icon != "" {
+		renderedIcon = iconStyle.Render(icon + " ")
+	}
+	renderedName := nameStyle.Render(name)
+	renderedSuffix := suffixStyle.Render(rawSuffix)
 
 	if isCursor {
 		cursorBaseStyle := lipgloss.NewStyle().Background(colors.HighlightBackground).Bold(true)
 		cursorIndicator := cursorBaseStyle.Foreground(colors.Text).Render(" ❯ ")
-		cursorCheckboxStyle := checkboxStyle
 
+		cursorCheckboxStyle := checkboxStyle
 		if rawCheckbox == "[ ]" {
 			cursorCheckboxStyle = cursorCheckboxStyle.Foreground(colors.Text)
 		}
 
-		renderedCheckbox := cursorBaseStyle.Inherit(cursorCheckboxStyle).PaddingRight(1).Render(rawCheckbox)
-		renderedPrefix := cursorBaseStyle.Inherit(prefixStyle).Render(treePrefix)
-		renderedDirIndicator := cursorBaseStyle.Inherit(dirIndicatorStyle).Bold(false).Render(rawDirIndicator)
-		renderedName := cursorBaseStyle.Inherit(nameStyle).Render(name)
-		renderedDepIndicator := cursorBaseStyle.Inherit(depIndicatorStyle).Bold(false).Render(rawSuffix)
+		cursorIconStyle := iconStyle
 
-		lineContent := fmt.Sprintf("%s%s%s%s%s",
+		renderedCheckbox = cursorBaseStyle.Inherit(cursorCheckboxStyle).PaddingRight(1).Render(rawCheckbox)
+		renderedPrefix = cursorBaseStyle.Inherit(prefixStyle).Render(treePrefix)
+		if icon != "" {
+			renderedIcon = cursorBaseStyle.Inherit(cursorIconStyle).Bold(false).Render(icon + " ")
+		} else {
+			renderedIcon = ""
+		}
+		renderedName = cursorBaseStyle.Inherit(nameStyle).Render(name)
+		renderedSuffix = cursorBaseStyle.Inherit(suffixStyle).Render(rawSuffix)
+
+		cursorLineContent := fmt.Sprintf("%s%s%s%s%s",
 			renderedCheckbox,
 			renderedPrefix,
-			renderedDirIndicator,
+			renderedIcon,
 			renderedName,
-			renderedDepIndicator,
+			renderedSuffix,
 		)
 
-		fullContentWidth := lipgloss.Width(cursorIndicator + lineContent)
+		fullContentWidth := lipgloss.Width(cursorIndicator + cursorLineContent)
 		paddingWidth := viewportWidth - fullContentWidth
 		if paddingWidth < 0 {
 			paddingWidth = 0
 		}
 		padding := cursorBaseStyle.Render(strings.Repeat(" ", paddingWidth))
 
-		return cursorIndicator + lineContent + padding
+		return cursorIndicator + cursorLineContent + padding
 	} else {
-		// Non-cursor line rendering
-		cursorIndicator := "   "
-
-		if shouldBold {
-			nameStyle = nameStyle.Bold(true)
-			checkboxStyle = checkboxStyle.Bold(true)
-		}
-
-		renderedCheckbox := checkboxStyle.PaddingRight(1).Render(rawCheckbox)
-		renderedPrefix := prefixStyle.Render(treePrefix)
-		renderedDirIndicator := dirIndicatorStyle.Render(rawDirIndicator)
-		renderedName := nameStyle.Render(name)
-		renderedDepIndicator := depIndicatorStyle.Render(rawSuffix)
-
 		lineContent := fmt.Sprintf("%s%s%s%s%s",
 			renderedCheckbox,
 			renderedPrefix,
-			renderedDirIndicator,
+			renderedIcon,
 			renderedName,
-			renderedDepIndicator,
+			renderedSuffix,
 		)
 
-		return cursorIndicator + lineContent
+		return "   " + lineContent
 	}
 }
 

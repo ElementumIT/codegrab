@@ -47,6 +47,7 @@ func main() {
 	var resolveDeps bool
 	var maxDepth int
 	var maxFileSizeStr string
+	var showIcons bool
 	var showTokenCount bool
 
 	flag.BoolVar(&showHelp, "help", false, "Display help information")
@@ -85,6 +86,8 @@ func main() {
 
 	maxFileSizeUsage := "Maximum file size to include (e.g., 50kb, 2MB). No limit by default."
 	flag.StringVar(&maxFileSizeStr, "max-file-size", "", maxFileSizeUsage)
+
+	flag.BoolVar(&showIcons, "icons", false, "Display Nerd Font icons")
 
 	flag.BoolVar(&showTokenCount, "show-tokens", false, "Show the number of tokens for each file")
 
@@ -164,9 +167,10 @@ func main() {
 			Format:         formatName,
 			SkipRedaction:  skipRedaction,
 			ResolveDeps:    resolveDeps,
+			ShowIcons:      showIcons,
+			ShowTokenCount: showTokenCount,
 			MaxDepth:       maxDepth,
 			MaxFileSize:    maxFileSize,
-			ShowTokenCount: showTokenCount,
 		}
 
 		m := model.NewModel(config)
