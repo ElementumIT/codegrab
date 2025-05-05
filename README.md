@@ -6,7 +6,7 @@
   <strong>An interactive CLI tool for selecting and bundling code into a single, LLM-ready output file.</strong>
 </p>
 
-![codegrab-demo](https://github.com/user-attachments/assets/77b8984e-913f-4646-a1f7-e4d16aa8f7b5)
+![codegrab-demo](https://github.com/user-attachments/assets/0f7d3e41-d023-4763-aff6-17c6be7c4189)
 
 ## ❓ Why?
 
