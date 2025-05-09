@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/epilande/codegrab/internal/utils"
 
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
@@ -52,6 +53,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.buildDisplayNodes()
 		m.refreshViewportContent()
+
+		// Initialize preview if enabled
+		if m.showPreview {
+			m.updatePreview()
+		}
+
 		return m, nil
 
 	case outputGeneratedMsg:
@@ -103,14 +110,74 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		headerHeight, footerHeight := 2, 2
-		m.viewport.Width = m.width - 2
-		m.viewport.Height = m.height - headerHeight - footerHeight
+
+		if m.showPreview {
+			// Split the screen into two parts for file tree and preview
+			// Account for border width (1 character on each side)
+			const borderWidth = 1 // Standard border width
+			const gap = 2         // Gap between panels
+
+			// Calculate panel widths with consistent spacing
+			totalWidth := m.width - gap
+			// Subtract minimal space for borders
+			adjustedWidth := totalWidth - (borderWidth * 2) // Only account for essential borders
+			// Allocate slightly more space to the file tree (55%) and less to preview (45%)
+			fileTreeWidth := int(float64(adjustedWidth) * 0.55)
+			previewWidth := adjustedWidth - fileTreeWidth
+
+			// Update viewport sizes with fixed dimensions
+			m.viewport.Width = fileTreeWidth
+			m.viewport.Height = m.height - headerHeight - footerHeight
+
+			m.previewViewport.Width = previewWidth
+			m.previewViewport.Height = m.height - headerHeight - footerHeight - 1 // -1 for preview header
+		} else {
+			// Full width for file tree
+			m.viewport.Width = m.width - 2
+			m.viewport.Height = m.height - headerHeight - footerHeight
+		}
+
 		m.refreshViewportContent()
+
+		// Update preview content if needed
+		if m.showPreview {
+			m.updatePreview()
+		}
+
 		return m, nil
 
 	case tea.KeyMsg:
+
+		// Get the current key
+		currentKey := msg.String()
+		currentTime := utils.GetCurrentTimeMillis()
+
+		// Special handling for help mode
 		if m.showHelp {
-			switch msg.String() {
+			// Special handling for 'g' key in help mode
+			if currentKey == "g" {
+				// If this is the first 'g', just record it and wait for second 'g'
+				if m.lastKey != "g" {
+					m.lastKey = "g"
+					m.lastKeyTime = currentTime
+					// Don't do anything else for the first 'g'
+					return m, nil
+				} else if (currentTime - m.lastKeyTime) < 500 {
+					// This is the second 'g' within time window - go to top
+					m.lastKey = "" // Reset after handling the sequence
+					m.viewport.GotoTop()
+					return m, nil
+				}
+			}
+
+			// For non-'g' keys in help mode, update tracking info
+			if currentKey != "g" {
+				m.lastKey = currentKey
+				m.lastKeyTime = currentTime
+			}
+
+			// Handle other help mode keys
+			switch currentKey {
 			case "q", "esc", "?":
 				m.showHelp = false
 				m.refreshViewportContent()
@@ -121,10 +188,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "k", "up":
 				m.viewport.LineUp(1)
 				return m, nil
-			case "g", "home":
-				m.viewport.GotoTop()
-				return m, nil
-			case "G", "end":
+			case "G":
+				// Vim style: go to bottom
 				m.viewport.GotoBottom()
 				return m, nil
 			default:
@@ -182,20 +247,67 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-		switch key := msg.String(); key {
+		// Handle key sequences for Vim-like navigation
+		currentKey = msg.String()
+		currentTime = utils.GetCurrentTimeMillis()
+
+		// Special handling for 'g' key to implement 'gg' sequence
+		if currentKey == "g" {
+			// If this is the first 'g', just record it and wait for second 'g'
+			if m.lastKey != "g" {
+				m.lastKey = "g"
+				m.lastKeyTime = currentTime
+				// Don't do anything else for the first 'g'
+				return m, nil
+			} else if (currentTime - m.lastKeyTime) < 500 {
+				// This is the second 'g' within time window - execute 'gg' command
+				m.lastKey = "" // Reset after handling the sequence
+
+				// Go to top (Vim style)
+				if m.previewFocused && m.showPreview {
+					m.previewViewport.GotoTop()
+				} else {
+					m.viewport.GotoTop()
+					m.cursor = 0
+					m.refreshViewportContent()
+				}
+				return m, nil
+			}
+		}
+
+		// For non-'g' keys, update tracking info
+		if currentKey != "g" {
+			m.lastKey = currentKey
+			m.lastKeyTime = currentTime
+		}
+
+		// Handle single keys
+		switch currentKey {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "j", "down", "ctrl+n":
-			if m.cursor < len(m.displayNodes)-1 {
+			if m.previewFocused && m.showPreview {
+				// Scroll preview down when preview is focused
+				m.previewViewport.LineDown(1)
+			} else if m.cursor < len(m.displayNodes)-1 {
 				m.cursor++
 				m.ensureCursorVisible()
 				m.refreshViewportContent()
+				if m.showPreview {
+					m.updatePreview()
+				}
 			}
 		case "k", "up", "ctrl+p":
-			if m.cursor > 0 {
+			if m.previewFocused && m.showPreview {
+				// Scroll preview up when preview is focused
+				m.previewViewport.LineUp(1)
+			} else if m.cursor > 0 {
 				m.cursor--
 				m.ensureCursorVisible()
 				m.refreshViewportContent()
+				if m.showPreview {
+					m.updatePreview()
+				}
 			}
 		case "r":
 			m.selected = make(map[string]bool)
@@ -207,16 +319,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.reloadFiles(),
 				func() tea.Msg { return refreshMsg{} },
 			)
-		case "H", "home":
-			m.cursor = 0
-			m.ensureCursorVisible()
-			m.refreshViewportContent()
-		case "L", "end":
-			m.cursor = len(m.displayNodes) - 1
-			m.ensureCursorVisible()
-			m.refreshViewportContent()
+
 		case "h", "left":
-			if m.cursor < len(m.displayNodes) {
+			if m.previewFocused && m.showPreview {
+				// Return focus to file tree
+				m.previewFocused = false
+				m.refreshViewportContent()
+			} else if m.cursor < len(m.displayNodes) {
 				node := m.displayNodes[m.cursor]
 				if node.IsDir && !m.collapsed[node.Path] {
 					m.toggleCollapse(node.Path)
@@ -229,6 +338,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "l", "right":
+			if !m.previewFocused && m.showPreview && m.cursor < len(m.displayNodes) {
+				node := m.displayNodes[m.cursor]
+				if !node.IsDir {
+					// Move focus to preview panel for files
+					m.previewFocused = true
+					m.refreshViewportContent()
+					return m, nil
+				}
+			}
+
 			if m.cursor < len(m.displayNodes) {
 				node := m.displayNodes[m.cursor]
 				if node.IsDir && m.collapsed[node.Path] {
@@ -281,8 +400,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "y":
 			return m, m.copyOutputToClipboard()
-		case "g":
-			return m, m.generateOutput()
+		// 'g' key is now handled by the key sequence detection above
 		case "i":
 			m.useGitIgnore = !m.useGitIgnore
 			m.generator.UseGitIgnore = m.useGitIgnore
@@ -337,6 +455,80 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.warningMsg = ""
 			m.refreshViewportContent()
+		case "P":
+			// Toggle preview pane
+			m.showPreview = !m.showPreview
+
+			// Update viewport sizes based on new setting
+			headerHeight, footerHeight := 2, 2
+			if m.showPreview {
+				// Split the screen for preview using the same calculation as in WindowSizeMsg
+				// Account for border width (1 character on each side)
+				const borderWidth = 1 // Standard border width
+				const gap = 2         // Gap between panels
+
+				// Calculate panel widths with consistent spacing
+				totalWidth := m.width - gap
+				// Subtract minimal space for borders
+				adjustedWidth := totalWidth - (borderWidth * 2) // Only account for essential borders
+				// Allocate slightly more space to the file tree (55%) and less to preview (45%)
+				fileTreeWidth := int(float64(adjustedWidth) * 0.55)
+				previewWidth := adjustedWidth - fileTreeWidth
+
+				// Update viewport sizes with fixed dimensions
+				m.viewport.Width = fileTreeWidth
+				m.previewViewport.Width = previewWidth
+				m.previewViewport.Height = m.height - headerHeight - footerHeight - 1 // -1 for preview header
+
+				// Update the preview content
+				m.updatePreview()
+				m.successMsg = "Preview pane enabled"
+			} else {
+				// Full width for file tree
+				m.viewport.Width = m.width - 2
+				m.successMsg = "Preview pane disabled"
+			}
+
+			m.refreshViewportContent()
+		// Preview navigation keys
+		case "J":
+			if m.showPreview {
+				m.previewViewport.LineDown(1)
+			}
+		case "K":
+			if m.showPreview {
+				m.previewViewport.LineUp(1)
+			}
+		case "G":
+			// Go to bottom (Vim style)
+			if m.previewFocused && m.showPreview {
+				// When preview is focused, just scroll to bottom
+				m.previewViewport.GotoBottom()
+			} else {
+				// When file tree is focused, move cursor to last item and scroll to bottom
+				m.viewport.GotoBottom()
+				if len(m.displayNodes) > 0 {
+					m.cursor = len(m.displayNodes) - 1
+					m.ensureCursorVisible()
+					m.refreshViewportContent()
+					// Update preview if needed
+					if m.showPreview {
+						m.updatePreview()
+					}
+				}
+			}
+
+		case "ctrl+u":
+			if m.showPreview {
+				m.previewViewport.HalfViewUp()
+			}
+		case "ctrl+d":
+			if m.showPreview {
+				m.previewViewport.HalfViewDown()
+			}
+		case "ctrl+g":
+			// Generate output
+			return m, m.generateOutput()
 		}
 	}
 	return m, nil

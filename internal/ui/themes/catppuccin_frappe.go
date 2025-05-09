@@ -29,7 +29,7 @@ func NewCatppuccinFrappeTheme() Theme {
 
 			// File/directory colors
 			Directory:  lipgloss.Color("#8caaee"), // blue
-			File:       lipgloss.Color("#c6d0f5"), // text
+			File:       lipgloss.Color("#f4b8e4"), // pink - more visible than text
 			Selected:   lipgloss.Color("#a6d189"), // green
 			Deselected: lipgloss.Color("#737994"), // overlay0
 

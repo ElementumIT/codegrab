@@ -8,6 +8,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/ui"
+	"github.com/epilande/codegrab/internal/ui/themes"
 	"github.com/epilande/codegrab/internal/utils"
 )
 
@@ -21,8 +22,121 @@ func (m Model) View() string {
 
 	header := m.renderHeader()
 	footer := m.renderFooter()
-	content := ui.GetStyleBorderedViewport().Render(m.viewport.View())
-	return header + "\n" + content + "\n" + footer
+
+	if m.showPreview {
+		// Split the screen into two parts: file tree and preview
+		// Reserve some space for borders and gap between panels
+		const gap = 2 // Gap between panels
+
+		// Calculate panel widths
+		// Account for border width (1 character on each side) plus extra space for safety
+		const borderWidth = 2           // Using 2 instead of 1 to ensure enough space
+		totalWidth := m.width - gap - 4 // Subtract extra space for borders
+		fileTreeWidth := totalWidth / 2
+		previewWidth := totalWidth - fileTreeWidth - 2 // Extra space for right border
+
+		// Safety check to ensure panels fit within screen
+		if fileTreeWidth+previewWidth+gap+borderWidth*4 > m.width {
+			// Adjust to fit within screen width
+			previewWidth = m.width - fileTreeWidth - gap - borderWidth*4 - 2 // Extra safety margin
+		}
+
+		// Ensure minimum widths
+		if fileTreeWidth < 20 {
+			fileTreeWidth = 20
+		}
+		if previewWidth < 20 {
+			previewWidth = 20
+		}
+
+		// Style the file tree and preview with appropriate borders based on focus
+		// Create custom border styles to ensure all sides are visible
+		fileTreeStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderTop(true).
+			BorderRight(true).
+			BorderBottom(true).
+			BorderLeft(true).
+			BorderForeground(themes.CurrentTheme.Colors().Border).
+			Padding(0, 1).
+			Width(fileTreeWidth)
+
+		// Create a style for the preview panel with minimal right padding
+		previewStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderTop(true).
+			BorderRight(true). // Explicitly enable right border
+			BorderBottom(true).
+			BorderLeft(true).
+			BorderForeground(themes.CurrentTheme.Colors().Border).
+			// Use asymmetric padding - less on the right side
+			PaddingLeft(1).
+			PaddingRight(0).
+			// Use exact width
+			Width(previewWidth)
+
+		// Apply highlighted border to the focused panel
+		if m.previewFocused {
+			// Highlight preview border when preview is focused
+			previewStyle = previewStyle.BorderForeground(ui.GetStyleHighlightedBorder().GetForeground())
+		} else {
+			// Highlight file tree border when file tree is focused
+			fileTreeStyle = fileTreeStyle.BorderForeground(ui.GetStyleHighlightedBorder().GetForeground())
+		}
+
+		// Render the file tree and preview
+		fileTree := fileTreeStyle.Render(m.viewport.View())
+
+		// Create the preview header based on the current file
+		previewHeaderText := ""
+		if m.currentPreviewPath != "" {
+			if m.currentPreviewIsDir {
+				previewHeaderText = "📁 " + m.currentPreviewPath
+			} else {
+				previewHeaderText = "📄 " + m.currentPreviewPath
+			}
+		} else {
+			previewHeaderText = "No file selected"
+		}
+
+		// Render the preview header
+		previewHeader := ui.GetStylePreviewHeader().Render(previewHeaderText)
+
+		// Render the preview content with the styled border
+		// Ensure consistent width for the preview content
+		// First, get the raw content from the viewport
+		rawViewContent := m.previewViewport.View()
+
+		// Set a fixed height for the preview content to ensure consistent layout
+		// This helps prevent layout shifts when content has different line wrapping
+		fixedHeightStyle := lipgloss.NewStyle().Height(m.previewViewport.Height)
+
+		// Apply the fixed height style to the raw content
+		fixedHeightContent := fixedHeightStyle.Render(rawViewContent)
+
+		// Now render with the preview style
+		previewContent := previewStyle.Render(fixedHeightContent)
+
+		// Store the current dimensions to maintain consistency
+		previewContentWidth := lipgloss.Width(previewContent)
+
+		// Ensure the header has the same width as the content for consistency
+		previewHeader = lipgloss.NewStyle().Width(previewContentWidth).Render(previewHeader)
+
+		// Combine header and content
+		preview := lipgloss.JoinVertical(lipgloss.Left, previewHeader, previewContent)
+
+		// Join the file tree and preview horizontally with a gap between them
+		gapStr := strings.Repeat(" ", 2) // Create a 2-character gap
+
+		// Join the panels directly without extra space
+		content := lipgloss.JoinHorizontal(lipgloss.Top, fileTree, gapStr, preview)
+		return header + "\n" + content + "\n" + footer
+	} else {
+		// Original single-pane view
+		content := ui.GetStyleBorderedViewport().Render(m.viewport.View())
+		return header + "\n" + content + "\n" + footer
+	}
 }
 
 func (m Model) renderHeader() string {
@@ -95,7 +209,7 @@ func (m Model) renderFooter() string {
 	} else if m.successMsg != "" {
 		leftParts = append(leftParts, ui.GetStyleSuccess().Render(m.successMsg))
 	} else {
-		helpText := "Press '?' for help | Select: space | Generate: g | Copy: y"
+		helpText := "Press '?' for help | Select: space | Generate: ctrl+g | Copy: y"
 		leftParts = append(leftParts, ui.GetStyleHelp().Render(helpText))
 	}
 

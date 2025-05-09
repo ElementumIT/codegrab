@@ -29,7 +29,7 @@ func NewNordTheme() Theme {
 
 			// File/directory colors
 			Directory:  lipgloss.Color("#5e81ac"), // nord10
-			File:       lipgloss.Color("#eceff4"), // nord6
+			File:       lipgloss.Color("#88c0d0"), // nord8 - more visible than nord6
 			Selected:   lipgloss.Color("#a3be8c"), // nord14
 			Deselected: lipgloss.Color("#4c566a"), // nord3
 

@@ -26,7 +26,7 @@ func NewDraculaTheme() Theme {
 			Info:    lipgloss.Color("#8be9fd"), // cyan
 
 			Directory:  lipgloss.Color("#8be9fd"), // cyan
-			File:       lipgloss.Color("#f8f8f2"), // foreground
+			File:       lipgloss.Color("#ff79c6"), // pink - more visible than foreground
 			Selected:   lipgloss.Color("#50fa7b"), // green
 			Deselected: lipgloss.Color("#6272a4"), // comment
 

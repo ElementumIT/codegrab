@@ -2,8 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/ui/themes"
@@ -46,8 +44,29 @@ func GetStyleHelp() lipgloss.Style {
 // GetStyleBorderedViewport returns the bordered viewport style using the current theme
 func GetStyleBorderedViewport() lipgloss.Style {
 	return lipgloss.NewStyle().
+		// Use rounded border on all sides
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(themes.CurrentTheme.Colors().Border)
+		// Explicitly set all borders to ensure they're visible
+		BorderTop(true).
+		BorderRight(true).
+		BorderBottom(true).
+		BorderLeft(true).
+		BorderForeground(themes.CurrentTheme.Colors().Border).
+		Padding(0, 1) // Add horizontal padding for better readability
+}
+
+// GetStyleHighlightedBorder returns a style for highlighted borders
+func GetStyleHighlightedBorder() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(themes.CurrentTheme.Colors().Primary)
+}
+
+// GetStylePreviewHeader returns the preview header style using the current theme
+func GetStylePreviewHeader() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Bold(true).
+		Foreground(themes.CurrentTheme.Colors().Secondary).
+		Padding(0, 1)
 }
 
 // GetStyleSearchCount returns the search count style using the current theme
@@ -118,7 +137,8 @@ func StyleFileLine(
 		if isSelected {
 			nameStyle = nameStyle.Foreground(colors.Selected)
 		} else {
-			nameStyle = nameStyle.Foreground(colors.Text)
+			// Use the File color for file names
+			nameStyle = nameStyle.Foreground(colors.File)
 		}
 	}
 	if shouldBold {
@@ -164,14 +184,9 @@ func StyleFileLine(
 			renderedSuffix,
 		)
 
-		fullContentWidth := lipgloss.Width(cursorIndicator + cursorLineContent)
-		paddingWidth := viewportWidth - fullContentWidth
-		if paddingWidth < 0 {
-			paddingWidth = 0
-		}
-		padding := cursorBaseStyle.Render(strings.Repeat(" ", paddingWidth))
-
-		return cursorIndicator + cursorLineContent + padding
+		// Don't add background padding to the end of the line
+		// This makes the cursor highlight only cover the actual content
+		return cursorIndicator + cursorLineContent
 	} else {
 		lineContent := fmt.Sprintf("%s%s%s%s%s",
 			renderedCheckbox,

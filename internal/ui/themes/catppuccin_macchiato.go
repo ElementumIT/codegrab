@@ -29,7 +29,7 @@ func NewCatppuccinMacchiatoTheme() Theme {
 
 			// File/directory colors
 			Directory:  lipgloss.Color("#8aadf4"), // blue
-			File:       lipgloss.Color("#cad3f5"), // text
+			File:       lipgloss.Color("#f5bde6"), // pink - more visible than text
 			Selected:   lipgloss.Color("#a6da95"), // green
 			Deselected: lipgloss.Color("#6e738d"), // overlay0
 
