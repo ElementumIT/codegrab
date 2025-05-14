@@ -29,7 +29,7 @@ func NewRosePineDawnTheme() Theme {
 
 			// File/directory colors
 			Directory:  lipgloss.Color("#56949f"), // foam
-			File:       lipgloss.Color("#d7827e"), // rose - more visible than surface
+			File:       lipgloss.Color("#fffaf3"), // surface
 			Selected:   lipgloss.Color("#d7827e"), // rose
 			Deselected: lipgloss.Color("#9893a5"), // muted
 
