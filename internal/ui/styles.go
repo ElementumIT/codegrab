@@ -285,16 +285,13 @@ func StyleFileLine(
 // StylePreviewContent styles the preview content when the preview panel is focused
 func StylePreviewContent(content string, isFocused bool, viewportWidth int) string {
 	if !isFocused {
-		// If not focused, return the content as is
 		return content
 	}
 
 	colors := themes.CurrentTheme.Colors()
-	// Split the content into lines
 	lines := strings.Split(content, "\n")
 	styledLines := make([]string, 0, len(lines))
 
-	// Apply highlight background to each line
 	highlightStyle := lipgloss.NewStyle().Background(colors.HighlightBackground)
 
 	for _, line := range lines {

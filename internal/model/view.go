@@ -34,7 +34,6 @@ func (m Model) View() string {
 		}
 		content := ui.GetStyleBorderedViewport().Width(innerWidth).Height(availableHeight).Render(m.viewport.View())
 
-		// Join explicitly with exact spacing
 		result := header + "\n" + content + "\n" + footer
 
 		// Apply terminal edge padding with consistent spacing
@@ -89,7 +88,7 @@ func (m Model) View() string {
 			}
 		}
 
-		// Ensure widths are not negative
+		// Ensure non-negative widths
 		if fileTreeInnerWidth < 0 {
 			fileTreeInnerWidth = 0
 		}
@@ -179,11 +178,8 @@ func (m Model) View() string {
 			fileTreePanelHeader,
 			renderedFileTreeContent)
 
-		// Render preview content with full-width highlighting when focused
-		previewContent := m.previewViewport.View()
-		// Apply full-width highlighting when preview is focused
-		styledPreviewContent := ui.StylePreviewContent(previewContent, m.previewFocused, previewInnerWidth)
-		renderedPreviewContent := previewContentBoxStyle.Render(styledPreviewContent)
+		// Render preview content
+		renderedPreviewContent := previewContentBoxStyle.Render(m.previewViewport.View())
 
 		// Combine preview header and content
 		renderedPreview := lipgloss.JoinVertical(lipgloss.Left,

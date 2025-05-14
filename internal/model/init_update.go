@@ -294,8 +294,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-		// Key sequence handling is now done at the beginning of the tea.KeyMsg case
-
 		// Handle single keys
 		switch currentKey {
 		case "q", "ctrl+c":
@@ -415,7 +413,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "y":
 			return m, m.copyOutputToClipboard()
-		// 'g' key is now handled by the key sequence detection above
 		case "i":
 			m.useGitIgnore = !m.useGitIgnore
 			m.generator.UseGitIgnore = m.useGitIgnore
