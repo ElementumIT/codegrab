@@ -164,6 +164,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.lastKeyTime = currentTime
 		}
 
+		// Handle half-page scrolling keys
+		if currentKey == "ctrl+u" {
+			if m.previewFocused && m.showPreview {
+				// Scroll preview half page up when preview is focused
+				m.previewViewport.HalfViewUp()
+			} else {
+				// Move cursor half page up in file tree
+				m.halfPageUp()
+				m.refreshViewportContent()
+				// Update preview if enabled
+				if m.showPreview {
+					m.updatePreview()
+				}
+			}
+			return m, nil
+		} else if currentKey == "ctrl+d" {
+			if m.previewFocused && m.showPreview {
+				// Scroll preview half page down when preview is focused
+				m.previewViewport.HalfViewDown()
+			} else {
+				// Move cursor half page down in file tree
+				m.halfPageDown()
+				m.refreshViewportContent()
+				// Update preview if enabled
+				if m.showPreview {
+					m.updatePreview()
+				}
+			}
+			return m, nil
+		}
+
 		// Special handling for help mode
 		if m.showHelp {
 			// Handle help mode keys
@@ -479,14 +510,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-		case "ctrl+u":
-			if m.showPreview {
-				m.previewViewport.HalfViewUp()
-			}
-		case "ctrl+d":
-			if m.showPreview {
-				m.previewViewport.HalfViewDown()
-			}
 		case "ctrl+g":
 			// Generate output
 			return m, m.generateOutput()
@@ -510,6 +533,58 @@ func (m *Model) reloadFiles() tea.Cmd {
 
 func (m *Model) toggleCollapse(path string) {
 	m.collapsed[path] = !m.collapsed[path]
+}
+
+// halfPageUp moves the cursor up by half the viewport height
+func (m *Model) halfPageUp() {
+	// Calculate half the viewport height
+	halfHeight := m.viewport.Height / 2
+
+	// Calculate how many lines we can actually move up
+	// This is the minimum of half the viewport height and the current cursor position
+	moveLines := halfHeight
+	if moveLines > m.cursor {
+		moveLines = m.cursor
+	}
+
+	// Move cursor up by calculated amount
+	m.cursor -= moveLines
+
+	// Ensure cursor is visible
+	m.ensureCursorVisible()
+}
+
+// halfPageDown moves the cursor down by half the viewport height
+func (m *Model) halfPageDown() {
+	// Calculate half the viewport height
+	halfHeight := m.viewport.Height / 2
+
+	// Get the nodes to work with
+	var nodes []FileNode
+	if m.isSearching && len(m.searchResults) > 0 {
+		nodes = m.searchResults
+	} else {
+		nodes = m.displayNodes
+	}
+
+	// Calculate how many lines we can actually move down
+	// This is the minimum of half the viewport height and the remaining lines
+	moveLines := halfHeight
+	remaining := len(nodes) - m.cursor - 1
+	if moveLines > remaining {
+		moveLines = remaining
+	}
+
+	// Move cursor down by calculated amount
+	m.cursor += moveLines
+
+	// Safety check for empty list
+	if len(nodes) == 0 {
+		m.cursor = 0
+	}
+
+	// Ensure cursor is visible
+	m.ensureCursorVisible()
 }
 
 // calculateLayout updates the viewport dimensions based on the current window size and preview state
