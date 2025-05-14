@@ -82,14 +82,18 @@ func GetStyleSearchCount() lipgloss.Style {
 func GetStyleWarning() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(themes.CurrentTheme.Colors().Warning).
-		Bold(false)
+		Bold(false).
+		PaddingLeft(FileTreePaddingL).
+		PaddingRight(FileTreePaddingR)
 }
 
 // GetStyleInfo returns the info style using the current theme
 func GetStyleInfo() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(themes.CurrentTheme.Colors().Info).
-		Bold(false)
+		Bold(false).
+		PaddingLeft(FileTreePaddingL).
+		PaddingRight(FileTreePaddingR)
 }
 
 // GetStyleFileTreePanelHeader returns the style for the file tree panel header
@@ -97,7 +101,8 @@ func GetStyleFileTreePanelHeader() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Bold(true).
 		Foreground(themes.CurrentTheme.Colors().Secondary).
-		PaddingBottom(0)
+		PaddingLeft(FileTreePaddingL).
+		PaddingRight(FileTreePaddingR)
 }
 
 // StyleFileLine styles a file line based on its properties and the current theme

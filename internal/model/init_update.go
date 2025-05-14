@@ -632,17 +632,19 @@ func (m *Model) calculateLayout() {
 			previewInnerWidth = 0
 		}
 
-		// Set viewport dimensions - ensure we account for the panel headers and add 1 to prevent last line cutoff
+		// Set viewport dimensions with precise width calculation
 		m.viewport.Width = fileTreeInnerWidth
 
-		m.viewport.Height = m.height - headerHeight - footerHeight - (2 * ui.BorderSize) - ui.FileTreePanelHeaderHeight
+		// Calculate viewport height precisely accounting for all UI elements
+		m.viewport.Height = m.height - headerHeight - footerHeight - ui.FileTreePanelHeaderHeight
 		if m.viewport.Height < 0 {
 			m.viewport.Height = 0
 		}
 
 		m.previewViewport.Width = previewInnerWidth
 
-		m.previewViewport.Height = m.height - headerHeight - footerHeight - ui.PreviewHeaderHeight - (2 * ui.BorderSize)
+		// Calculate preview viewport height precisely accounting for all UI elements
+		m.previewViewport.Height = m.height - headerHeight - footerHeight - ui.PreviewHeaderHeight
 		if m.previewViewport.Height < 0 {
 			m.previewViewport.Height = 0
 		}
@@ -653,10 +655,11 @@ func (m *Model) calculateLayout() {
 			innerWidth = 0
 		}
 
-		// Set dimensions with adjustment for last line
+		// Set viewport dimensions with precise width calculation
 		m.viewport.Width = innerWidth
 
-		m.viewport.Height = m.height - headerHeight - footerHeight - (2 * ui.BorderSize) - ui.FileTreePanelHeaderHeight
+		// Calculate viewport height precisely accounting for all UI elements
+		m.viewport.Height = m.height - headerHeight - footerHeight - ui.FileTreePanelHeaderHeight
 		if m.viewport.Height < 0 {
 			m.viewport.Height = 0
 		}

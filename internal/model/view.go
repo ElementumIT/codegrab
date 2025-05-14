@@ -37,7 +37,7 @@ func (m Model) View() string {
 		// Join explicitly with exact spacing
 		result := header + "\n" + content + "\n" + footer
 
-		// Apply padding to properly position the content
+		// Apply terminal edge padding with consistent spacing
 		return lipgloss.NewStyle().
 			PaddingLeft(ui.FileTreePaddingL).
 			PaddingRight(ui.FileTreePaddingR).
@@ -100,7 +100,7 @@ func (m Model) View() string {
 		// Create file tree panel header
 		fileTreePanelHeader := ui.GetStyleFileTreePanelHeader().
 			Width(fileTreeInnerWidth).
-			Render("Files")
+			Render("📚 Files")
 		fileTreePanelHeaderHeight := lipgloss.Height(fileTreePanelHeader)
 
 		// Precise viewport height calculation - account for everything
@@ -137,7 +137,8 @@ func (m Model) View() string {
 		highlightedBorderColor := ui.GetStyleHighlightedBorder().GetForeground()
 
 		// File tree style - account for content only (header is separate)
-		fileTreeContentHeight := m.viewport.Height + (2 * ui.BorderSize)
+		// Use exact height to prevent extra space at the bottom
+		fileTreeContentHeight := m.viewport.Height
 		fileTreeStyle := lipgloss.NewStyle().
 			Border(commonBorder).
 			BorderTop(true).
@@ -149,7 +150,8 @@ func (m Model) View() string {
 			Height(fileTreeContentHeight)
 
 		// Preview content style
-		previewContentBoxHeight := m.previewViewport.Height + (2 * ui.BorderSize)
+		// Use exact height to prevent extra space at the bottom
+		previewContentBoxHeight := m.previewViewport.Height
 		if previewContentBoxHeight < 0 {
 			previewContentBoxHeight = 0
 		}
@@ -202,7 +204,7 @@ func (m Model) View() string {
 			renderedFooter,
 		)
 
-		// Apply terminal edge padding but no top padding
+		// Apply terminal edge padding with consistent spacing
 		return lipgloss.NewStyle().
 			PaddingLeft(ui.FileTreePaddingL).
 			PaddingRight(ui.FileTreePaddingR).
@@ -213,7 +215,7 @@ func (m Model) View() string {
 		// Create file tree panel header
 		fileTreePanelHeader := ui.GetStyleFileTreePanelHeader().
 			Width(availableWidth - (2 * ui.BorderSize)).
-			Render("Files")
+			Render("📚 Files")
 		fileTreePanelHeaderHeight := lipgloss.Height(fileTreePanelHeader)
 
 		// Calculate viewport height accounting for the file tree panel header
@@ -223,7 +225,8 @@ func (m Model) View() string {
 		}
 
 		// Calculate bordered viewport height for content only (not header)
-		borderedViewportHeight := m.viewport.Height + (2 * ui.BorderSize)
+		// Use exact height to prevent extra space at the bottom
+		borderedViewportHeight := m.viewport.Height
 
 		// Calculate inner width
 		innerWidth := availableWidth - (2 * ui.BorderSize)
@@ -256,7 +259,7 @@ func (m Model) View() string {
 			renderedFooter,
 		)
 
-		// Apply terminal edge padding but no top padding
+		// Apply terminal edge padding with consistent spacing
 		return lipgloss.NewStyle().
 			PaddingLeft(ui.FileTreePaddingL).
 			PaddingRight(ui.FileTreePaddingR).
