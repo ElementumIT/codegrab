@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/utils"
 
 	"github.com/atotto/clipboard"
@@ -607,9 +608,17 @@ func (m *Model) halfPageDown() {
 
 // calculateLayout updates the viewport dimensions based on the current window size and preview state
 func (m *Model) calculateLayout() {
-	// Account for top padding to make header visible
-	headerHeight := ui.DefaultHeaderHeight
-	footerHeight := ui.DefaultFooterHeight
+	// Calculate actual header and footer heights dynamically
+	renderedHeader := m.renderHeader()
+	renderedFooter := m.renderFooter()
+	headerHeight := lipgloss.Height(renderedHeader)
+	footerHeight := lipgloss.Height(renderedFooter)
+
+	// Calculate available height precisely
+	availablePanelHeight := m.height - headerHeight - footerHeight
+	if availablePanelHeight < 0 {
+		availablePanelHeight = 0
+	}
 
 	// Available width after terminal edge padding
 	availableWidth := m.width - ui.FileTreePaddingL - ui.FileTreePaddingR
@@ -635,16 +644,38 @@ func (m *Model) calculateLayout() {
 		// Set viewport dimensions with precise width calculation
 		m.viewport.Width = fileTreeInnerWidth
 
+		// Create file tree panel header to calculate its actual height
+		fileTreePanelHeader := ui.GetStyleFileTreePanelHeader().
+			Width(fileTreeInnerWidth).
+			Render("📚 Files")
+		fileTreePanelHeaderHeight := lipgloss.Height(fileTreePanelHeader)
+
 		// Calculate viewport height precisely accounting for all UI elements
-		m.viewport.Height = m.height - headerHeight - footerHeight - ui.FileTreePanelHeaderHeight
+		m.viewport.Height = availablePanelHeight - (2 * ui.BorderSize) - fileTreePanelHeaderHeight
 		if m.viewport.Height < 0 {
 			m.viewport.Height = 0
 		}
 
 		m.previewViewport.Width = previewInnerWidth
 
-		// Calculate preview viewport height precisely accounting for all UI elements
-		m.previewViewport.Height = m.height - headerHeight - footerHeight - ui.PreviewHeaderHeight
+		// Prepare preview header text
+		previewHeaderText := "No file selected"
+		if m.currentPreviewPath != "" {
+			previewHeaderText = "📄 " + m.currentPreviewPath
+			if m.currentPreviewIsDir {
+				previewHeaderText = "📁 " + m.currentPreviewPath
+			}
+		}
+
+		// Calculate actual preview header height
+		previewOuterWidth := previewInnerWidth + (2 * ui.BorderSize)
+		styledPreviewHeader := ui.GetStylePreviewHeader().
+			Width(previewOuterWidth).
+			Render(previewHeaderText)
+		previewHeaderActualHeight := lipgloss.Height(styledPreviewHeader)
+
+		// Calculate preview viewport height with precise measurement
+		m.previewViewport.Height = availablePanelHeight - previewHeaderActualHeight - (2 * ui.BorderSize)
 		if m.previewViewport.Height < 0 {
 			m.previewViewport.Height = 0
 		}
@@ -658,8 +689,14 @@ func (m *Model) calculateLayout() {
 		// Set viewport dimensions with precise width calculation
 		m.viewport.Width = innerWidth
 
+		// Create file tree panel header to calculate its actual height
+		fileTreePanelHeader := ui.GetStyleFileTreePanelHeader().
+			Width(availableWidth - (2 * ui.BorderSize)).
+			Render("📚 Files")
+		fileTreePanelHeaderHeight := lipgloss.Height(fileTreePanelHeader)
+
 		// Calculate viewport height precisely accounting for all UI elements
-		m.viewport.Height = m.height - headerHeight - footerHeight - ui.FileTreePanelHeaderHeight
+		m.viewport.Height = availablePanelHeight - (2 * ui.BorderSize) - fileTreePanelHeaderHeight
 		if m.viewport.Height < 0 {
 			m.viewport.Height = 0
 		}
