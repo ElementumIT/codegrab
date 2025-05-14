@@ -200,6 +200,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewport.GotoTop()
 				m.collapseAllDirectories()
 				m.refreshViewportContent()
+				// Update preview if enabled
+				if m.showPreview {
+					m.updatePreview()
+				}
 				return m, nil
 			case "tab", "enter":
 				if len(m.searchResults) > 0 && m.cursor < len(m.searchResults) {
@@ -209,6 +213,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.updateSearchResults()
 					m.ensureCursorVisible()
 					m.refreshViewportContent()
+					// Update preview if enabled
+					if m.showPreview {
+						m.updatePreview()
+					}
 				}
 				return m, nil
 			case "ctrl+n", "down":
@@ -216,6 +224,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.cursor = (m.cursor + 1) % len(m.searchResults)
 					m.ensureCursorVisible()
 					m.refreshViewportContent()
+					// Update preview if enabled
+					if m.showPreview {
+						m.updatePreview()
+					}
 				}
 				return m, nil
 			case "ctrl+p", "up":
@@ -226,6 +238,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					m.ensureCursorVisible()
 					m.refreshViewportContent()
+					// Update preview if enabled
+					if m.showPreview {
+						m.updatePreview()
+					}
 				}
 				return m, nil
 			}
@@ -234,6 +250,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.updateSearchResults()
 			m.refreshViewportContent()
+
+			// Update preview if enabled and we have search results
+			if m.showPreview && len(m.searchResults) > 0 {
+				m.updatePreview()
+			}
+
 			return m, cmd
 		}
 
