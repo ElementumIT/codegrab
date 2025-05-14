@@ -179,8 +179,11 @@ func (m Model) View() string {
 			fileTreePanelHeader,
 			renderedFileTreeContent)
 
-		// Render preview content
-		renderedPreviewContent := previewContentBoxStyle.Render(m.previewViewport.View())
+		// Render preview content with full-width highlighting when focused
+		previewContent := m.previewViewport.View()
+		// Apply full-width highlighting when preview is focused
+		styledPreviewContent := ui.StylePreviewContent(previewContent, m.previewFocused, previewInnerWidth)
+		renderedPreviewContent := previewContentBoxStyle.Render(styledPreviewContent)
 
 		// Combine preview header and content
 		renderedPreview := lipgloss.JoinVertical(lipgloss.Left,

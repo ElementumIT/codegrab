@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/ui/themes"
+	"strings"
 )
 
 // GetStyleHeader returns the header style using the current theme
@@ -253,8 +254,19 @@ func StyleFileLine(
 			renderedSuffix,
 		)
 
-		// Add cursor indicator with proper spacing
-		return cursorIndicator + cursorLineContent
+		// Calculate remaining width to fill the entire line
+		lineWidth := lipgloss.Width(cursorLineContent) + lipgloss.Width(cursorIndicator)
+		remainingWidth := viewportWidth - lineWidth
+		if remainingWidth < 0 {
+			remainingWidth = 0
+		}
+
+		// Create padding to extend highlight to full width
+		padding := strings.Repeat(" ", remainingWidth)
+		paddingWithHighlight := cursorBaseStyle.Render(padding)
+
+		// Add cursor indicator with proper spacing and padding for full-width highlight
+		return cursorIndicator + cursorLineContent + paddingWithHighlight
 	} else {
 		// Build the non-cursor line with consistent spacing
 		lineContent := fmt.Sprintf("%s%s%s%s%s",
@@ -268,6 +280,45 @@ func StyleFileLine(
 		// Ensure consistent left padding (matches cursor indicator width)
 		return "   " + lineContent
 	}
+}
+
+// StylePreviewContent styles the preview content when the preview panel is focused
+func StylePreviewContent(content string, isFocused bool, viewportWidth int) string {
+	if !isFocused {
+		// If not focused, return the content as is
+		return content
+	}
+
+	colors := themes.CurrentTheme.Colors()
+	// Split the content into lines
+	lines := strings.Split(content, "\n")
+	styledLines := make([]string, 0, len(lines))
+
+	// Apply highlight background to each line
+	highlightStyle := lipgloss.NewStyle().Background(colors.HighlightBackground)
+
+	for _, line := range lines {
+		// Ensure the highlight extends across the full width by padding the line
+		// We need to account for the viewport width minus border and padding
+		effectiveWidth := viewportWidth - (2 * FileTreePaddingL) - (2 * FileTreePaddingR)
+		if effectiveWidth < 0 {
+			effectiveWidth = 0
+		}
+
+		// Calculate how much padding we need to add to make the highlight span the full width
+		lineWidth := lipgloss.Width(line)
+		padding := 0
+		if lineWidth < effectiveWidth {
+			padding = effectiveWidth - lineWidth
+		}
+
+		// Apply the highlight style to the line with padding
+		styledLine := highlightStyle.Render(line + strings.Repeat(" ", padding))
+		styledLines = append(styledLines, styledLine)
+	}
+
+	// Join the styled lines back together
+	return strings.Join(styledLines, "\n")
 }
 
 // NewSearchInput creates a new search input with styling from the current theme
