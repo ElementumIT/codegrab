@@ -11,6 +11,10 @@ import (
 	"github.com/epilande/codegrab/internal/generator/formats"
 )
 
+// doubleKeyTimeoutMs is the maximum time in milliseconds between two 'g' keypresses to be considered a 'gg' command
+const doubleKeyTimeoutMs = 500
+const defaultFileTreePreviewRatio = 0.55
+
 type filesLoadedMsg struct {
 	err   error
 	files []filesystem.FileItem
@@ -109,33 +113,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		headerHeight, footerHeight := 2, 2
 
-		if m.showPreview {
-			// Split the screen into two parts for file tree and preview
-			// Account for border width (1 character on each side)
-			const borderWidth = 1 // Standard border width
-			const gap = 2         // Gap between panels
-
-			// Calculate panel widths with consistent spacing
-			totalWidth := m.width - gap
-			// Subtract minimal space for borders
-			adjustedWidth := totalWidth - (borderWidth * 2) // Only account for essential borders
-			// Allocate slightly more space to the file tree (55%) and less to preview (45%)
-			fileTreeWidth := int(float64(adjustedWidth) * 0.55)
-			previewWidth := adjustedWidth - fileTreeWidth
-
-			// Update viewport sizes with fixed dimensions
-			m.viewport.Width = fileTreeWidth
-			m.viewport.Height = m.height - headerHeight - footerHeight
-
-			m.previewViewport.Width = previewWidth
-			m.previewViewport.Height = m.height - headerHeight - footerHeight - 1 // -1 for preview header
-		} else {
-			// Full width for file tree
-			m.viewport.Width = m.width - 2
-			m.viewport.Height = m.height - headerHeight - footerHeight
-		}
+		// Update layout based on new window size
+		m.calculateLayout()
 
 		m.refreshViewportContent()
 
@@ -152,31 +132,41 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		currentKey := msg.String()
 		currentTime := utils.GetCurrentTimeMillis()
 
+		// Handle 'gg' key sequence for Vim-like navigation (consolidated logic)
+		if currentKey == "g" {
+			if m.lastKey == "g" && (currentTime-m.lastKeyTime) < doubleKeyTimeoutMs {
+				// This is the second 'g' within time window - execute 'gg' command
+				m.lastKey = "" // Reset after handling the sequence
+
+				// Go to top (Vim style) - action depends on current state
+				if m.showHelp {
+					// In help mode, just scroll help to top
+					m.viewport.GotoTop()
+				} else if m.previewFocused && m.showPreview {
+					// When preview is focused, scroll preview to top
+					m.previewViewport.GotoTop()
+				} else {
+					// When file tree is focused, move cursor to top and scroll
+					m.viewport.GotoTop()
+					m.cursor = 0
+					m.refreshViewportContent()
+				}
+				return m, nil
+			} else {
+				// First 'g' press - record it and wait for second 'g'
+				m.lastKey = "g"
+				m.lastKeyTime = currentTime
+				return m, nil
+			}
+		} else {
+			// For non-'g' keys, update tracking info
+			m.lastKey = currentKey
+			m.lastKeyTime = currentTime
+		}
+
 		// Special handling for help mode
 		if m.showHelp {
-			// Special handling for 'g' key in help mode
-			if currentKey == "g" {
-				// If this is the first 'g', just record it and wait for second 'g'
-				if m.lastKey != "g" {
-					m.lastKey = "g"
-					m.lastKeyTime = currentTime
-					// Don't do anything else for the first 'g'
-					return m, nil
-				} else if (currentTime - m.lastKeyTime) < 500 {
-					// This is the second 'g' within time window - go to top
-					m.lastKey = "" // Reset after handling the sequence
-					m.viewport.GotoTop()
-					return m, nil
-				}
-			}
-
-			// For non-'g' keys in help mode, update tracking info
-			if currentKey != "g" {
-				m.lastKey = currentKey
-				m.lastKeyTime = currentTime
-			}
-
-			// Handle other help mode keys
+			// Handle help mode keys
 			switch currentKey {
 			case "q", "esc", "?":
 				m.showHelp = false
@@ -247,39 +237,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-		// Handle key sequences for Vim-like navigation
-		currentKey = msg.String()
-		currentTime = utils.GetCurrentTimeMillis()
-
-		// Special handling for 'g' key to implement 'gg' sequence
-		if currentKey == "g" {
-			// If this is the first 'g', just record it and wait for second 'g'
-			if m.lastKey != "g" {
-				m.lastKey = "g"
-				m.lastKeyTime = currentTime
-				// Don't do anything else for the first 'g'
-				return m, nil
-			} else if (currentTime - m.lastKeyTime) < 500 {
-				// This is the second 'g' within time window - execute 'gg' command
-				m.lastKey = "" // Reset after handling the sequence
-
-				// Go to top (Vim style)
-				if m.previewFocused && m.showPreview {
-					m.previewViewport.GotoTop()
-				} else {
-					m.viewport.GotoTop()
-					m.cursor = 0
-					m.refreshViewportContent()
-				}
-				return m, nil
-			}
-		}
-
-		// For non-'g' keys, update tracking info
-		if currentKey != "g" {
-			m.lastKey = currentKey
-			m.lastKeyTime = currentTime
-		}
+		// Key sequence handling is now done at the beginning of the tea.KeyMsg case
 
 		// Handle single keys
 		switch currentKey {
@@ -459,33 +417,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Toggle preview pane
 			m.showPreview = !m.showPreview
 
-			// Update viewport sizes based on new setting
-			headerHeight, footerHeight := 2, 2
+			// Update layout based on new preview state
+			m.calculateLayout()
+
+			// Update the preview content if needed
 			if m.showPreview {
-				// Split the screen for preview using the same calculation as in WindowSizeMsg
-				// Account for border width (1 character on each side)
-				const borderWidth = 1 // Standard border width
-				const gap = 2         // Gap between panels
-
-				// Calculate panel widths with consistent spacing
-				totalWidth := m.width - gap
-				// Subtract minimal space for borders
-				adjustedWidth := totalWidth - (borderWidth * 2) // Only account for essential borders
-				// Allocate slightly more space to the file tree (55%) and less to preview (45%)
-				fileTreeWidth := int(float64(adjustedWidth) * 0.55)
-				previewWidth := adjustedWidth - fileTreeWidth
-
-				// Update viewport sizes with fixed dimensions
-				m.viewport.Width = fileTreeWidth
-				m.previewViewport.Width = previewWidth
-				m.previewViewport.Height = m.height - headerHeight - footerHeight - 1 // -1 for preview header
-
-				// Update the preview content
 				m.updatePreview()
 				m.successMsg = "Preview pane enabled"
 			} else {
-				// Full width for file tree
-				m.viewport.Width = m.width - 2
 				m.successMsg = "Preview pane disabled"
 			}
 
@@ -549,6 +488,37 @@ func (m *Model) reloadFiles() tea.Cmd {
 
 func (m *Model) toggleCollapse(path string) {
 	m.collapsed[path] = !m.collapsed[path]
+}
+
+// calculateLayout updates the viewport dimensions based on the current window size and preview state
+func (m *Model) calculateLayout() {
+	headerHeight, footerHeight := 2, 2
+
+	if m.showPreview {
+		// Split the screen into two parts for file tree and preview
+		// Account for border width (1 character on each side)
+		const borderWidth = 1 // Standard border width
+		const gap = 2         // Gap between panels
+
+		// Calculate panel widths with consistent spacing
+		totalWidth := m.width - gap
+		// Subtract minimal space for borders
+		adjustedWidth := totalWidth - (borderWidth * 2) // Only account for essential borders
+		// Allocate space based on the defined ratio
+		fileTreeWidth := int(float64(adjustedWidth) * defaultFileTreePreviewRatio)
+		previewWidth := adjustedWidth - fileTreeWidth
+
+		// Update viewport sizes with fixed dimensions
+		m.viewport.Width = fileTreeWidth
+		m.viewport.Height = m.height - headerHeight - footerHeight
+
+		m.previewViewport.Width = previewWidth
+		m.previewViewport.Height = m.height - headerHeight - footerHeight - 1 // -1 for preview header
+	} else {
+		// Full width for file tree
+		m.viewport.Width = m.width - 2
+		m.viewport.Height = m.height - headerHeight - footerHeight
+	}
 }
 
 // generateOutput creates the output in the current format
