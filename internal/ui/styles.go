@@ -164,6 +164,54 @@ func StyleFileLine(
 		checkboxStyle = checkboxStyle.Bold(true)
 	}
 
+	// Calculate available width for the name and suffix
+	// Fixed components: checkbox (4 chars), cursor indicator (3 chars), icon (varies)
+	// We need to account for the rendered width of all components
+	const cursorIndicatorWidth = 3 // " ❯ "
+	const leftPaddingWidth = 3     // "   "
+
+	checkboxWidth := len(rawCheckbox) + 1 // +1 for padding
+	prefixWidth := lipgloss.Width(treePrefix)
+	iconWidth := 0
+	if icon != "" {
+		iconWidth = lipgloss.Width(icon) + 1 // +1 for space after icon
+	}
+
+	// Calculate available width for name and suffix
+	baseWidth := checkboxWidth + prefixWidth + iconWidth
+	availableWidth := 0
+
+	if isCursor {
+		availableWidth = viewportWidth - baseWidth - cursorIndicatorWidth
+	} else {
+		availableWidth = viewportWidth - baseWidth - leftPaddingWidth
+	}
+
+	// Ensure we have at least some space
+	if availableWidth < 5 {
+		availableWidth = 5 // Minimum width to show at least a few characters
+	}
+
+	// Truncate name if needed
+	suffixWidth := lipgloss.Width(rawSuffix)
+	nameWidth := lipgloss.Width(name)
+	maxNameWidth := availableWidth - suffixWidth
+
+	// If name is too long, truncate it
+	truncatedName := name
+	if maxNameWidth < 3 {
+		maxNameWidth = 3 // Minimum to show at least "..."
+	}
+
+	if nameWidth > maxNameWidth {
+		// Truncate the name and add ellipsis
+		if maxNameWidth <= 3 {
+			truncatedName = "..."
+		} else {
+			truncatedName = name[:maxNameWidth-3] + "..."
+		}
+	}
+
 	// Render individual parts
 	renderedCheckbox := checkboxStyle.PaddingRight(1).Render(rawCheckbox)
 	renderedPrefix := prefixStyle.Render(treePrefix)
@@ -171,7 +219,7 @@ func StyleFileLine(
 	if icon != "" {
 		renderedIcon = iconStyle.Render(icon + " ")
 	}
-	renderedName := nameStyle.Render(name)
+	renderedName := nameStyle.Render(truncatedName)
 	renderedSuffix := suffixStyle.Render(rawSuffix)
 
 	// Handle cursor highlighting
@@ -193,7 +241,7 @@ func StyleFileLine(
 		} else {
 			renderedIcon = ""
 		}
-		renderedName = cursorBaseStyle.Inherit(nameStyle).Render(name)
+		renderedName = cursorBaseStyle.Inherit(nameStyle).Render(truncatedName)
 		renderedSuffix = cursorBaseStyle.Inherit(suffixStyle).Render(rawSuffix)
 
 		// Build the full line with cursor highlight
