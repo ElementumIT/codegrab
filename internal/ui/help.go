@@ -33,13 +33,13 @@ View Options:
 Navigation (Vim Style):
   gg                       Go to top (file tree or preview)
   G                        Go to bottom (file tree or preview)
+  ctrl+u                   Scroll half page up (file tree or preview)
+  ctrl+d                   Scroll half page down (file tree or preview)
 
 Preview Navigation:
   J                        Scroll preview down (when preview not focused)
   K                        Scroll preview up (when preview not focused)
-  j / k                    Scroll preview when preview is focused
-  ctrl+u                   Scroll preview half page up
-  ctrl+d                   Scroll preview half page down`
+  j / k                    Scroll preview when preview is focused`
 
 const UsageText = `Usage:
   grab [options] [directory]
