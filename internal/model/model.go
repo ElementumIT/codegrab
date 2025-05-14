@@ -224,6 +224,6 @@ func NewModel(config Config) Model {
 		},
 		cursor:         0,
 		showTokenCount: config.ShowTokenCount,
-		showPreview:    true,
+		showPreview:    false,
 	}
 }
