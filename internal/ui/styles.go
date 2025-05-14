@@ -12,7 +12,8 @@ func GetStyleHeader() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Bold(true).
 		Foreground(themes.CurrentTheme.Colors().Primary).
-		Padding(0, 1)
+		PaddingLeft(FileTreePaddingL).
+		PaddingRight(FileTreePaddingR)
 }
 
 // GetStyleFormatIndicator returns the format indicator style using the current theme
@@ -52,7 +53,8 @@ func GetStyleBorderedViewport() lipgloss.Style {
 		BorderBottom(true).
 		BorderLeft(true).
 		BorderForeground(themes.CurrentTheme.Colors().Border).
-		Padding(0, 1) // Add horizontal padding for better readability
+		PaddingLeft(FileTreePaddingL).
+		PaddingRight(FileTreePaddingR) // Use separate padding constants for left and right
 }
 
 // GetStyleHighlightedBorder returns a style for highlighted borders
@@ -66,7 +68,8 @@ func GetStylePreviewHeader() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Bold(true).
 		Foreground(themes.CurrentTheme.Colors().Secondary).
-		Padding(0, 1)
+		PaddingLeft(FileTreePaddingL).
+		PaddingRight(FileTreePaddingR)
 }
 
 // GetStyleSearchCount returns the search count style using the current theme
@@ -87,6 +90,14 @@ func GetStyleInfo() lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(themes.CurrentTheme.Colors().Info).
 		Bold(false)
+}
+
+// GetStyleFileTreePanelHeader returns the style for the file tree panel header
+func GetStyleFileTreePanelHeader() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Bold(true).
+		Foreground(themes.CurrentTheme.Colors().Secondary).
+		PaddingBottom(0)
 }
 
 // StyleFileLine styles a file line based on its properties and the current theme
@@ -111,6 +122,7 @@ func StyleFileLine(
 	suffixStyle := lipgloss.NewStyle().Foreground(colors.Muted)
 	iconStyle := lipgloss.NewStyle()
 
+	// Style checkbox based on selection state
 	switch rawCheckbox {
 	case "[x]":
 		checkboxStyle = checkboxStyle.Foreground(colors.Success)
@@ -120,6 +132,7 @@ func StyleFileLine(
 		checkboxStyle = checkboxStyle.Foreground(colors.Muted)
 	}
 
+	// Apply icon styling
 	if iconColor != "" {
 		iconStyle = iconStyle.Foreground(lipgloss.Color(iconColor))
 	} else {
@@ -130,6 +143,7 @@ func StyleFileLine(
 		}
 	}
 
+	// Set text styling based on item type and selection state
 	shouldBold := isSelected || isPartialDir
 	if isDir {
 		nameStyle = nameStyle.Foreground(colors.Directory)
@@ -137,7 +151,6 @@ func StyleFileLine(
 		if isSelected {
 			nameStyle = nameStyle.Foreground(colors.Selected)
 		} else {
-			// Use the File color for file names
 			nameStyle = nameStyle.Foreground(colors.File)
 		}
 	}
@@ -146,6 +159,7 @@ func StyleFileLine(
 		checkboxStyle = checkboxStyle.Bold(true)
 	}
 
+	// Render individual parts
 	renderedCheckbox := checkboxStyle.PaddingRight(1).Render(rawCheckbox)
 	renderedPrefix := prefixStyle.Render(treePrefix)
 	renderedIcon := ""
@@ -155,6 +169,7 @@ func StyleFileLine(
 	renderedName := nameStyle.Render(name)
 	renderedSuffix := suffixStyle.Render(rawSuffix)
 
+	// Handle cursor highlighting
 	if isCursor {
 		cursorBaseStyle := lipgloss.NewStyle().Background(colors.HighlightBackground).Bold(true)
 		cursorIndicator := cursorBaseStyle.Foreground(colors.Text).Render(" ❯ ")
@@ -176,6 +191,7 @@ func StyleFileLine(
 		renderedName = cursorBaseStyle.Inherit(nameStyle).Render(name)
 		renderedSuffix = cursorBaseStyle.Inherit(suffixStyle).Render(rawSuffix)
 
+		// Build the full line with cursor highlight
 		cursorLineContent := fmt.Sprintf("%s%s%s%s%s",
 			renderedCheckbox,
 			renderedPrefix,
@@ -184,10 +200,10 @@ func StyleFileLine(
 			renderedSuffix,
 		)
 
-		// Don't add background padding to the end of the line
-		// This makes the cursor highlight only cover the actual content
+		// Add cursor indicator with proper spacing
 		return cursorIndicator + cursorLineContent
 	} else {
+		// Build the non-cursor line with consistent spacing
 		lineContent := fmt.Sprintf("%s%s%s%s%s",
 			renderedCheckbox,
 			renderedPrefix,
@@ -196,6 +212,7 @@ func StyleFileLine(
 			renderedSuffix,
 		)
 
+		// Ensure consistent left padding (matches cursor indicator width)
 		return "   " + lineContent
 	}
 }
@@ -208,7 +225,8 @@ func NewSearchInput() textinput.Model {
 	ti.Placeholder = "Search files..."
 	ti.PromptStyle = ti.PromptStyle.
 		Foreground(colors.Tertiary).
-		Padding(0, 1)
+		PaddingLeft(FileTreePaddingL).
+		PaddingRight(FileTreePaddingR)
 	ti.TextStyle = ti.TextStyle.Foreground(colors.Tertiary)
 	ti.Prompt = "🔍"
 	ti.Width = 50

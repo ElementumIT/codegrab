@@ -9,11 +9,14 @@ import (
 
 	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/generator/formats"
+	"github.com/epilande/codegrab/internal/ui"
 )
 
 // doubleKeyTimeoutMs is the maximum time in milliseconds between two 'g' keypresses to be considered a 'gg' command
 const doubleKeyTimeoutMs = 500
-const defaultFileTreePreviewRatio = 0.55
+
+// defaultFileTreePreviewRatio is the ratio of the screen width allocated to the file tree panel
+const defaultFileTreePreviewRatio = 0.5
 
 type filesLoadedMsg struct {
 	err   error
@@ -537,6 +540,20 @@ func (m *Model) toggleCollapse(path string) {
 
 // halfPageUp moves the cursor up by half the viewport height
 func (m *Model) halfPageUp() {
+	// Get the nodes to work with
+	var nodes []FileNode
+	if m.isSearching && len(m.searchResults) > 0 {
+		nodes = m.searchResults
+	} else {
+		nodes = m.displayNodes
+	}
+
+	// Check for empty list
+	if len(nodes) == 0 {
+		m.cursor = 0
+		return
+	}
+
 	// Calculate half the viewport height
 	halfHeight := m.viewport.Height / 2
 
@@ -567,6 +584,12 @@ func (m *Model) halfPageDown() {
 		nodes = m.displayNodes
 	}
 
+	// Safety check for empty list
+	if len(nodes) == 0 {
+		m.cursor = 0
+		return
+	}
+
 	// Calculate how many lines we can actually move down
 	// This is the minimum of half the viewport height and the remaining lines
 	moveLines := halfHeight
@@ -578,43 +601,65 @@ func (m *Model) halfPageDown() {
 	// Move cursor down by calculated amount
 	m.cursor += moveLines
 
-	// Safety check for empty list
-	if len(nodes) == 0 {
-		m.cursor = 0
-	}
-
 	// Ensure cursor is visible
 	m.ensureCursorVisible()
 }
 
 // calculateLayout updates the viewport dimensions based on the current window size and preview state
 func (m *Model) calculateLayout() {
-	headerHeight, footerHeight := 2, 2
+	// Account for top padding to make header visible
+	headerHeight := ui.DefaultHeaderHeight
+	footerHeight := ui.DefaultFooterHeight
+
+	// Available width after terminal edge padding
+	availableWidth := m.width - ui.FileTreePaddingL - ui.FileTreePaddingR
 
 	if m.showPreview {
-		// Split the screen into two parts for file tree and preview
-		// Account for border width (1 character on each side)
-		const borderWidth = 1 // Standard border width
-		const gap = 2         // Gap between panels
+		// Split the screen for file tree and preview
+		adjustedWidth := availableWidth - ui.PanelGap - (4 * ui.BorderSize)
+		if adjustedWidth < 0 {
+			adjustedWidth = 0
+		}
 
-		// Calculate panel widths with consistent spacing
-		totalWidth := m.width - gap
-		// Subtract minimal space for borders
-		adjustedWidth := totalWidth - (borderWidth * 2) // Only account for essential borders
 		// Allocate space based on the defined ratio
-		fileTreeWidth := int(float64(adjustedWidth) * defaultFileTreePreviewRatio)
-		previewWidth := adjustedWidth - fileTreeWidth
+		fileTreeInnerWidth := int(float64(adjustedWidth) * defaultFileTreePreviewRatio)
+		previewInnerWidth := adjustedWidth - fileTreeInnerWidth
 
-		// Update viewport sizes with fixed dimensions
-		m.viewport.Width = fileTreeWidth
-		m.viewport.Height = m.height - headerHeight - footerHeight
+		if fileTreeInnerWidth < 0 {
+			fileTreeInnerWidth = 0
+		}
+		if previewInnerWidth < 0 {
+			previewInnerWidth = 0
+		}
 
-		m.previewViewport.Width = previewWidth
-		m.previewViewport.Height = m.height - headerHeight - footerHeight - 1 // -1 for preview header
+		// Set viewport dimensions - ensure we account for the panel headers and add 1 to prevent last line cutoff
+		m.viewport.Width = fileTreeInnerWidth
+
+		m.viewport.Height = m.height - headerHeight - footerHeight - (2 * ui.BorderSize) - ui.FileTreePanelHeaderHeight
+		if m.viewport.Height < 0 {
+			m.viewport.Height = 0
+		}
+
+		m.previewViewport.Width = previewInnerWidth
+
+		m.previewViewport.Height = m.height - headerHeight - footerHeight - ui.PreviewHeaderHeight - (2 * ui.BorderSize)
+		if m.previewViewport.Height < 0 {
+			m.previewViewport.Height = 0
+		}
 	} else {
-		// Full width for file tree
-		m.viewport.Width = m.width - 2
-		m.viewport.Height = m.height - headerHeight - footerHeight
+		// Full width for file tree (single panel mode)
+		innerWidth := availableWidth - (2 * ui.BorderSize)
+		if innerWidth < 0 {
+			innerWidth = 0
+		}
+
+		// Set dimensions with adjustment for last line
+		m.viewport.Width = innerWidth
+
+		m.viewport.Height = m.height - headerHeight - footerHeight - (2 * ui.BorderSize) - ui.FileTreePanelHeaderHeight
+		if m.viewport.Height < 0 {
+			m.viewport.Height = 0
+		}
 	}
 }
 

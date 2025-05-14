@@ -69,9 +69,8 @@ type Model struct {
 	currentPreviewPath    string
 	currentPreviewContent string
 	currentPreviewIsDir   bool
-	// Key sequence tracking
-	lastKeyTime int64
-	lastKey     string
+	lastKeyTime           int64  // Last key press time
+	lastKey               string // Last key pressed
 }
 
 type Config struct {

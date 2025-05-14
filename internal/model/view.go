@@ -2,143 +2,269 @@ package model
 
 import (
 	"fmt"
+	"github.com/epilande/codegrab/internal/ui/themes"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/ui"
-	"github.com/epilande/codegrab/internal/ui/themes"
 	"github.com/epilande/codegrab/internal/utils"
 )
 
+// View renders the entire UI model.
 func (m Model) View() string {
+	// If help is shown, render a simple help view.
 	if m.showHelp {
 		header := ui.GetStyleHeader().Render("❔ Help Menu")
-		content := ui.GetStyleBorderedViewport().Render(m.viewport.View())
-		footer := ui.GetStyleHelp().Render("Exit: esc")
-		return header + "\n" + content + "\n" + footer
+		headerHeight := lipgloss.Height(header)
+		footerText := "Exit: esc" // Example footer text for height calculation
+		footer := ui.GetStyleHelp().Render(footerText)
+		footerHeight := lipgloss.Height(footer)
+		availableHeight := m.height - headerHeight - footerHeight
+		if availableHeight < 0 {
+			availableHeight = 0
+		}
+		m.viewport.Height = availableHeight // Set viewport height for help content
+
+		// Calculate inner width accounting for borders and padding
+		innerWidth := m.width - (2 * ui.BorderSize) - ui.FileTreePaddingL - ui.FileTreePaddingR
+		if innerWidth < 0 {
+			innerWidth = 0
+		}
+		content := ui.GetStyleBorderedViewport().Width(innerWidth).Height(availableHeight).Render(m.viewport.View())
+
+		// Join explicitly with exact spacing
+		result := header + "\n" + content + "\n" + footer
+
+		// Apply padding to properly position the content
+		return lipgloss.NewStyle().
+			PaddingLeft(ui.FileTreePaddingL).
+			PaddingRight(ui.FileTreePaddingR).
+			Render(result)
 	}
 
-	header := m.renderHeader()
-	footer := m.renderFooter()
+	// Render header and footer strings first to determine their heights.
+	renderedHeader := m.renderHeader()
+	renderedFooter := m.renderFooter()
+	headerHeight := lipgloss.Height(renderedHeader)
+	footerHeight := lipgloss.Height(renderedFooter)
 
+	// Calculate available height precisely - don't add the +1 adjustment
+	availablePanelHeight := m.height - headerHeight - footerHeight
+	if availablePanelHeight < 0 {
+		availablePanelHeight = 0
+	}
+
+	// Available width after terminal edge padding
+	availableWidth := m.width - ui.FileTreePaddingL - ui.FileTreePaddingR
+
+	// If preview mode is active, render a split-screen view.
 	if m.showPreview {
-		// Split the screen into two parts: file tree and preview
-		// Reserve some space for borders and gap between panels
-		const gap = 2 // Gap between panels
+		// Calculate total horizontal space consumed by borders and gap
+		totalHorizontalBorderSpace := 2 * (2 * ui.BorderSize)
 
-		// Calculate panel widths
-		// Account for border width (1 character on each side) plus extra space for safety
-		const borderWidth = 2           // Using 2 instead of 1 to ensure enough space
-		totalWidth := m.width - gap - 4 // Subtract extra space for borders
-		fileTreeWidth := totalWidth / 2
-		previewWidth := totalWidth - fileTreeWidth - 2 // Extra space for right border
-
-		// Safety check to ensure panels fit within screen
-		if fileTreeWidth+previewWidth+gap+borderWidth*4 > m.width {
-			// Adjust to fit within screen width
-			previewWidth = m.width - fileTreeWidth - gap - borderWidth*4 - 2 // Extra safety margin
+		// Calculate the total inner width available for the content of both panels
+		availableInnerContentWidth := availableWidth - ui.PanelGap - totalHorizontalBorderSpace
+		if availableInnerContentWidth < 0 {
+			availableInnerContentWidth = 0
 		}
 
-		// Ensure minimum widths
-		if fileTreeWidth < 20 {
-			fileTreeWidth = 20
-		}
-		if previewWidth < 20 {
-			previewWidth = 20
+		// Distribute the available inner width between the file tree and preview content
+		fileTreeInnerWidth := int(float64(availableInnerContentWidth) * defaultFileTreePreviewRatio)
+		previewInnerWidth := availableInnerContentWidth - fileTreeInnerWidth
+
+		// Apply minimum width constraints
+		if fileTreeInnerWidth < ui.MinInnerContentWidth {
+			fileTreeInnerWidth = ui.MinInnerContentWidth
+			previewInnerWidth = availableInnerContentWidth - fileTreeInnerWidth
+			if previewInnerWidth < ui.MinInnerContentWidth {
+				previewInnerWidth = ui.MinInnerContentWidth
+			}
+		} else if previewInnerWidth < ui.MinInnerContentWidth {
+			previewInnerWidth = ui.MinInnerContentWidth
+			fileTreeInnerWidth = availableInnerContentWidth - previewInnerWidth
+			if fileTreeInnerWidth < ui.MinInnerContentWidth {
+				fileTreeInnerWidth = ui.MinInnerContentWidth
+			}
 		}
 
-		// Style the file tree and preview with appropriate borders based on focus
-		// Create custom border styles to ensure all sides are visible
+		// Ensure widths are not negative
+		if fileTreeInnerWidth < 0 {
+			fileTreeInnerWidth = 0
+		}
+		if previewInnerWidth < 0 {
+			previewInnerWidth = 0
+		}
+
+		// Create file tree panel header
+		fileTreePanelHeader := ui.GetStyleFileTreePanelHeader().
+			Width(fileTreeInnerWidth).
+			Render("Files")
+		fileTreePanelHeaderHeight := lipgloss.Height(fileTreePanelHeader)
+
+		// Precise viewport height calculation - account for everything
+		m.viewport.Height = availablePanelHeight - (2 * ui.BorderSize) - fileTreePanelHeaderHeight
+		if m.viewport.Height < 0 {
+			m.viewport.Height = 0
+		}
+
+		// Prepare preview header text
+		previewHeaderText := "No file selected"
+		if m.currentPreviewPath != "" {
+			previewHeaderText = "📄 " + m.currentPreviewPath
+			if m.currentPreviewIsDir {
+				previewHeaderText = "📁 " + m.currentPreviewPath
+			}
+		}
+
+		// Set preview header width
+		previewOuterWidth := previewInnerWidth + (2 * ui.BorderSize)
+		styledPreviewHeader := ui.GetStylePreviewHeader().
+			Width(previewOuterWidth).
+			Render(previewHeaderText)
+		previewHeaderActualHeight := lipgloss.Height(styledPreviewHeader)
+
+		// Calculate preview viewport height with precise measurement
+		m.previewViewport.Height = availablePanelHeight - previewHeaderActualHeight - (2 * ui.BorderSize)
+		if m.previewViewport.Height < 0 {
+			m.previewViewport.Height = 0
+		}
+
+		// Define panel styles
+		commonBorder := lipgloss.RoundedBorder()
+		defaultBorderColor := themes.CurrentTheme.Colors().Border
+		highlightedBorderColor := ui.GetStyleHighlightedBorder().GetForeground()
+
+		// File tree style - account for content only (header is separate)
+		fileTreeContentHeight := m.viewport.Height + (2 * ui.BorderSize)
 		fileTreeStyle := lipgloss.NewStyle().
+			Border(commonBorder).
+			BorderTop(true).
+			BorderRight(true).
+			BorderBottom(true).
+			BorderLeft(true).
+			BorderForeground(defaultBorderColor).
+			Width(fileTreeInnerWidth).
+			Height(fileTreeContentHeight)
+
+		// Preview content style
+		previewContentBoxHeight := m.previewViewport.Height + (2 * ui.BorderSize)
+		if previewContentBoxHeight < 0 {
+			previewContentBoxHeight = 0
+		}
+
+		previewContentBoxStyle := lipgloss.NewStyle().
+			Border(commonBorder).
+			BorderTop(true).
+			BorderRight(true).
+			BorderBottom(true).
+			BorderLeft(true).
+			BorderForeground(defaultBorderColor).
+			Width(previewInnerWidth).
+			Height(previewContentBoxHeight)
+
+		// Apply highlighted border to focused panel
+		if m.previewFocused {
+			previewContentBoxStyle = previewContentBoxStyle.BorderForeground(highlightedBorderColor)
+		} else {
+			fileTreeStyle = fileTreeStyle.BorderForeground(highlightedBorderColor)
+		}
+
+		// Render file tree with its header
+		renderedFileTreeContent := fileTreeStyle.Render(m.viewport.View())
+		renderedFileTree := lipgloss.JoinVertical(lipgloss.Left,
+			fileTreePanelHeader,
+			renderedFileTreeContent)
+
+		// Render preview content
+		renderedPreviewContent := previewContentBoxStyle.Render(m.previewViewport.View())
+
+		// Combine preview header and content
+		renderedPreview := lipgloss.JoinVertical(lipgloss.Left,
+			styledPreviewHeader,
+			renderedPreviewContent,
+		)
+
+		// Join panels with gap
+		gapFiller := strings.Repeat(" ", ui.PanelGap)
+		mainContent := lipgloss.JoinHorizontal(lipgloss.Top,
+			renderedFileTree,
+			gapFiller,
+			renderedPreview,
+		)
+
+		// Build the final layout content
+		finalContent := lipgloss.JoinVertical(
+			lipgloss.Left,
+			renderedHeader,
+			mainContent,
+			renderedFooter,
+		)
+
+		// Apply terminal edge padding but no top padding
+		return lipgloss.NewStyle().
+			PaddingLeft(ui.FileTreePaddingL).
+			PaddingRight(ui.FileTreePaddingR).
+			Render(finalContent)
+
+	} else {
+		// Single-pane view (non-preview mode)
+		// Create file tree panel header
+		fileTreePanelHeader := ui.GetStyleFileTreePanelHeader().
+			Width(availableWidth - (2 * ui.BorderSize)).
+			Render("Files")
+		fileTreePanelHeaderHeight := lipgloss.Height(fileTreePanelHeader)
+
+		// Calculate viewport height accounting for the file tree panel header
+		m.viewport.Height = availablePanelHeight - (2 * ui.BorderSize) - fileTreePanelHeaderHeight
+		if m.viewport.Height < 0 {
+			m.viewport.Height = 0
+		}
+
+		// Calculate bordered viewport height for content only (not header)
+		borderedViewportHeight := m.viewport.Height + (2 * ui.BorderSize)
+
+		// Calculate inner width
+		innerWidth := availableWidth - (2 * ui.BorderSize)
+		if innerWidth < 0 {
+			innerWidth = 0
+		}
+
+		// Create bordered viewport for file content
+		borderedViewportStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderTop(true).
 			BorderRight(true).
 			BorderBottom(true).
 			BorderLeft(true).
 			BorderForeground(themes.CurrentTheme.Colors().Border).
-			Padding(0, 1).
-			Width(fileTreeWidth)
+			Width(innerWidth).
+			Height(borderedViewportHeight)
 
-		// Create a style for the preview panel with minimal right padding
-		previewStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderTop(true).
-			BorderRight(true). // Explicitly enable right border
-			BorderBottom(true).
-			BorderLeft(true).
-			BorderForeground(themes.CurrentTheme.Colors().Border).
-			// Use asymmetric padding - less on the right side
-			PaddingLeft(1).
-			PaddingRight(0).
-			// Use exact width
-			Width(previewWidth)
+		// Render content and join with header
+		borderedContent := borderedViewportStyle.Render(m.viewport.View())
+		content := lipgloss.JoinVertical(lipgloss.Left,
+			fileTreePanelHeader,
+			borderedContent)
 
-		// Apply highlighted border to the focused panel
-		if m.previewFocused {
-			// Highlight preview border when preview is focused
-			previewStyle = previewStyle.BorderForeground(ui.GetStyleHighlightedBorder().GetForeground())
-		} else {
-			// Highlight file tree border when file tree is focused
-			fileTreeStyle = fileTreeStyle.BorderForeground(ui.GetStyleHighlightedBorder().GetForeground())
-		}
+		// Build the final layout content explicitly
+		finalContent := lipgloss.JoinVertical(
+			lipgloss.Left,
+			renderedHeader,
+			content,
+			renderedFooter,
+		)
 
-		// Render the file tree and preview
-		fileTree := fileTreeStyle.Render(m.viewport.View())
-
-		// Create the preview header based on the current file
-		previewHeaderText := ""
-		if m.currentPreviewPath != "" {
-			if m.currentPreviewIsDir {
-				previewHeaderText = "📁 " + m.currentPreviewPath
-			} else {
-				previewHeaderText = "📄 " + m.currentPreviewPath
-			}
-		} else {
-			previewHeaderText = "No file selected"
-		}
-
-		// Render the preview header
-		previewHeader := ui.GetStylePreviewHeader().Render(previewHeaderText)
-
-		// Render the preview content with the styled border
-		// Ensure consistent width for the preview content
-		// First, get the raw content from the viewport
-		rawViewContent := m.previewViewport.View()
-
-		// Set a fixed height for the preview content to ensure consistent layout
-		// This helps prevent layout shifts when content has different line wrapping
-		fixedHeightStyle := lipgloss.NewStyle().Height(m.previewViewport.Height)
-
-		// Apply the fixed height style to the raw content
-		fixedHeightContent := fixedHeightStyle.Render(rawViewContent)
-
-		// Now render with the preview style
-		previewContent := previewStyle.Render(fixedHeightContent)
-
-		// Store the current dimensions to maintain consistency
-		previewContentWidth := lipgloss.Width(previewContent)
-
-		// Ensure the header has the same width as the content for consistency
-		previewHeader = lipgloss.NewStyle().Width(previewContentWidth).Render(previewHeader)
-
-		// Combine header and content
-		preview := lipgloss.JoinVertical(lipgloss.Left, previewHeader, previewContent)
-
-		// Join the file tree and preview horizontally with a gap between them
-		gapStr := strings.Repeat(" ", 2) // Create a 2-character gap
-
-		// Join the panels directly without extra space
-		content := lipgloss.JoinHorizontal(lipgloss.Top, fileTree, gapStr, preview)
-		return header + "\n" + content + "\n" + footer
-	} else {
-		// Original single-pane view
-		content := ui.GetStyleBorderedViewport().Render(m.viewport.View())
-		return header + "\n" + content + "\n" + footer
+		// Apply terminal edge padding but no top padding
+		return lipgloss.NewStyle().
+			PaddingLeft(ui.FileTreePaddingL).
+			PaddingRight(ui.FileTreePaddingR).
+			Render(finalContent)
 	}
 }
 
+// renderHeader renders the header part of the UI.
 func (m Model) renderHeader() string {
 	headerIcon := "✋"
 	if m.isGrabbing {
@@ -153,6 +279,7 @@ func (m Model) renderHeader() string {
 	formatIndicator := ui.GetStyleFormatIndicator().Render(formatExt)
 
 	if m.isSearching {
+		// When searching, the search input takes the left side
 		leftContent = m.searchInput.View()
 		matchCount := 0
 		for _, node := range m.searchResults {
@@ -174,25 +301,23 @@ func (m Model) renderHeader() string {
 		))
 	}
 
-	leftWidth := lipgloss.Width(leftContent)
-	rightWidth := lipgloss.Width(rightContent)
-	spacing := m.width - leftWidth - rightWidth - 1
-
-	if spacing < 1 {
-		spacing = 1
+	// Calculate spacing to push rightContent to the right edge
+	spacing := m.width - lipgloss.Width(leftContent) - lipgloss.Width(rightContent) - 1
+	if spacing < 0 {
+		spacing = 0
 	}
 
-	header := lipgloss.JoinHorizontal(
-		lipgloss.Center,
+	return lipgloss.JoinHorizontal(
+		lipgloss.Top,
 		leftContent,
 		strings.Repeat(" ", spacing),
 		rightContent,
 	)
-
-	return header
 }
 
+// renderFooter renders the footer part of the UI.
 func (m Model) renderFooter() string {
+	// If help is shown, the main View() handles a minimal footer
 	if m.showHelp {
 		return ""
 	}
@@ -200,7 +325,7 @@ func (m Model) renderFooter() string {
 	var leftParts []string
 	var rightParts []string
 
-	// Left side: Status/Error/Help
+	// Left side: Status/Error/Help prompts
 	if m.isSearching {
 		searchHelp := "Next: ctrl+n | Prev: ctrl+p | Select: tab | Exit: esc"
 		leftParts = append(leftParts, ui.GetStyleHelp().Render(searchHelp))
@@ -213,42 +338,47 @@ func (m Model) renderFooter() string {
 		leftParts = append(leftParts, ui.GetStyleHelp().Render(helpText))
 	}
 
-	// Right side: Warn/Redaction status
-	redactionStatus := ""
+	// Right side: Warning/Redaction status/Dependency status
 	if m.warningMsg != "" {
 		rightParts = append(rightParts, ui.GetStyleWarning().Render(m.warningMsg))
 	} else if m.redactSecrets {
-		redactionStatus = ui.GetStyleInfo().Render("🛡️ Redacting")
+		rightParts = append(rightParts, ui.GetStyleInfo().Render("🛡️ Redacting"))
 	} else {
-		redactionStatus = ui.GetStyleWarning().Render("⚠️ NOT Redacting")
+		rightParts = append(rightParts, ui.GetStyleWarning().Render("⚠️ NOT Redacting"))
 	}
-	rightParts = append(rightParts, redactionStatus)
 
-	depStatus := ""
+	// Dependency status
 	if m.resolveDeps {
-		depStatus = ui.GetStyleInfo().Render(" | 🔗 Deps")
+		rightParts = append(rightParts, ui.GetStyleInfo().Render(" | 🔗 Deps"))
 	}
-	rightParts = append(rightParts, depStatus)
 
 	leftContent := lipgloss.JoinHorizontal(lipgloss.Top, leftParts...)
 	rightContent := lipgloss.JoinHorizontal(lipgloss.Top, rightParts...)
 
-	leftWidth := lipgloss.Width(leftContent)
-	rightWidth := lipgloss.Width(rightContent)
-	availableWidth := m.width - 2
-
-	spacing := availableWidth - leftWidth - rightWidth
-	if spacing < 1 {
-		spacing = 1
+	// Calculate spacing ensuring proper alignment
+	availableFooterWidth := m.width - 2 // Simple 1-char padding on each side
+	if availableFooterWidth < 0 {
+		availableFooterWidth = 0
 	}
 
-	footer := lipgloss.JoinHorizontal(
+	spacing := availableFooterWidth - lipgloss.Width(leftContent) - lipgloss.Width(rightContent)
+	if spacing < 0 {
+		spacing = 0
+	}
+
+	footerContent := lipgloss.JoinHorizontal(
 		lipgloss.Bottom,
 		leftContent,
 		lipgloss.NewStyle().Width(spacing).Render(""),
 		rightContent,
 	)
-	return lipgloss.NewStyle().Padding(0, 1).Render(footer)
+
+	// Add proper padding to ensure consistent spacing
+	return lipgloss.NewStyle().
+		PaddingLeft(1).
+		PaddingRight(1).
+		Width(m.width).
+		Render(footerContent)
 }
 
 // refreshViewportContent regenerates the lines for our displayNodes, highlights
@@ -264,44 +394,53 @@ func (m *Model) refreshViewportContent() {
 	dirsWithSelectedChildren := make(map[string]bool)
 	for path := range m.selected {
 		dir := filepath.Dir(path)
-		for dir != "." && dir != "/" {
+		// Mark parent directories that contain selected items
+		for dir != "." && dir != "/" && dir != "" {
 			dirsWithSelectedChildren[dir] = true
+			prevDir := dir
 			dir = filepath.Dir(dir)
+			if dir == prevDir {
+				break
+			}
 		}
 	}
 
-	// Calculate directory selected counts
 	dirSelectedCounts := make(map[string]int)
 	for _, file := range m.files {
 		if !file.IsDir && m.selected[file.Path] && !m.deselected[file.Path] {
 			dir := filepath.Dir(file.Path)
-			for dir != "." && dir != "/" {
+			for dir != "." && dir != "/" && dir != "" {
 				dirSelectedCounts[dir]++
+				prevDir := dir
 				dir = filepath.Dir(dir)
+				if dir == prevDir {
+					break
+				}
 			}
 		}
 	}
 
 	var lines []string
-	parentIsLast := make(map[int]bool)
+	parentIsLast := make(map[int]bool) // Tracks if parent at a certain level is the last child
 
 	for i, node := range nodes {
 		var prefixBuilder strings.Builder
 		for l := 0; l < node.Level; l++ {
 			if parentIsLast[l] {
-				prefixBuilder.WriteString("    ")
+				prefixBuilder.WriteString("    ") // Parent was last, no vertical line
 			} else {
-				prefixBuilder.WriteString("│   ")
+				prefixBuilder.WriteString("│   ") // Vertical line for ongoing parent branch
 			}
 		}
 
 		treeBranch := "├── "
 		if node.IsLast {
 			treeBranch = "└── "
-			parentIsLast[node.Level] = true
+			parentIsLast[node.Level] = true // This node is the last at its level
 		} else {
-			parentIsLast[node.Level] = false
+			parentIsLast[node.Level] = false // Not the last, siblings will follow
 		}
+		// Reset parentIsLast for deeper levels
 		for l := node.Level + 1; l < len(parentIsLast); l++ {
 			parentIsLast[l] = false
 		}
@@ -310,23 +449,23 @@ func (m *Model) refreshViewportContent() {
 
 		icon := node.Icon
 		iconColor := node.IconColor
-		if node.IsDir && icon == "" {
+		// Handle directory icon state (open/closed)
+		if node.IsDir && icon == "" {
 			if m.collapsed[node.Path] {
-				icon = ""
+				icon = "" // Collapsed icon
 			} else {
-				icon = ""
+				icon = "" // Expanded icon
 			}
-			// Fallback to use theme directory color
-			iconColor = ""
+			iconColor = "" // Use theme directory color by default
 		}
 
 		isPartialDir := !m.selected[node.Path] && dirsWithSelectedChildren[node.Path] && node.IsDir
-		rawCheckbox := "[ ]"
+		rawCheckbox := "[ ]" // Default empty checkbox
 		if node.IsDir {
 			if m.selected[node.Path] {
-				rawCheckbox = "[x]"
+				rawCheckbox = "[x]" // Directory fully selected
 			} else if isPartialDir {
-				rawCheckbox = "[~]"
+				rawCheckbox = "[~]" // Directory partially selected
 			}
 		} else {
 			if node.Selected {
@@ -336,19 +475,20 @@ func (m *Model) refreshViewportContent() {
 
 		rawName := node.Name
 		if node.IsDir {
-			rawName += "/"
+			rawName += "/" // Append slash to directory names
 		}
 
 		rawSuffix := ""
 		if node.IsDir {
 			if count := dirSelectedCounts[node.Path]; count > 0 {
-				rawSuffix = fmt.Sprintf(" [%d]", count)
+				rawSuffix = fmt.Sprintf(" [%d]", count) // Show count of selected files
 			}
-		} else {
+		} else { // It's a file
 			if node.IsDependency {
 				rawSuffix += " [dep]"
 			}
 			if m.showTokenCount {
+				// Check if it's a text file and estimate tokens
 				if ok, err := utils.IsTextFile(node.Path); ok && err == nil {
 					if contentBytes, err := os.ReadFile(node.Path); err == nil {
 						content := string(contentBytes)
@@ -360,6 +500,7 @@ func (m *Model) refreshViewportContent() {
 		}
 		isCursorLine := i == m.cursor
 
+		// Render the full line with proper left padding applied
 		rendered := ui.StyleFileLine(
 			rawCheckbox,
 			treePrefix,
@@ -368,7 +509,7 @@ func (m *Model) refreshViewportContent() {
 			rawName,
 			rawSuffix,
 			node.IsDir,
-			m.selected[node.Path],
+			m.selected[node.Path] || isPartialDir,
 			isCursorLine,
 			isPartialDir,
 			m.viewport.Width,
@@ -391,12 +532,14 @@ func (m *Model) ensureCursorVisible() {
 	}
 }
 
+// showHelpScreen prepares and displays the help content in the main viewport.
 func (m *Model) showHelpScreen() {
-	helpContent := ui.GetStyleHelp().Render(ui.HelpText + "\n\nPress '?' to close this help menu.")
+	helpContent := ui.GetStyleHelp().Render(ui.HelpText + "\n\nPress '?' or 'esc' to close this help menu.")
 	m.viewport.SetContent(helpContent)
-	m.viewport.GotoTop() // Reset scroll position to top when help is opened
+	m.viewport.GotoTop() // Reset scroll to the top when help is shown
 }
 
+// getTotalFileCount counts all non-directory files.
 func (m *Model) getTotalFileCount() int {
 	count := 0
 	for _, file := range m.files {
@@ -408,52 +551,70 @@ func (m *Model) getTotalFileCount() int {
 }
 
 // getSelectedFileCount calculates the effective number of selected files.
-// This considers explicitly selected files, files within selected directories
-// (respecting search results), and excludes deselected files.
 func (m *Model) getSelectedFileCount() int {
 	effectiveSelection := make(map[string]bool)
 
+	// Create a set of paths that are part of the current search results, if any
 	searchResultPaths := make(map[string]bool)
-	useSearchResults := m.isSearching && len(m.searchResults) > 0
-	if useSearchResults {
+	isFilteringBySearch := m.isSearching && len(m.searchResults) > 0
+	if isFilteringBySearch {
 		for _, node := range m.searchResults {
 			searchResultPaths[node.Path] = true
 		}
 	}
 
 	for _, item := range m.files {
-		if effectiveSelection[item.Path] {
+		// Skip if already counted or explicitly deselected
+		if effectiveSelection[item.Path] || m.deselected[item.Path] {
 			continue
 		}
 
-		if m.deselected[item.Path] {
-			continue
-		}
-
-		if useSearchResults && !searchResultPaths[item.Path] {
-			isChildOfSearchResult := false
-			parent := filepath.Dir(item.Path)
-			for parent != "." && parent != "/" {
-				if searchResultPaths[parent] {
-					isChildOfSearchResult = true
+		// If filtering by search results, check if item is in scope
+		if isFilteringBySearch {
+			inSearchResultScope := false
+			currentPath := item.Path
+			for {
+				if searchResultPaths[currentPath] {
+					inSearchResultScope = true
 					break
 				}
-				parent = filepath.Dir(parent)
+				parent := filepath.Dir(currentPath)
+				if parent == currentPath || parent == "." || parent == "/" {
+					break
+				}
+				currentPath = parent
 			}
-			if !isChildOfSearchResult {
+			if !inSearchResultScope {
 				continue
 			}
 		}
 
+		// Handle explicitly selected items
 		if m.selected[item.Path] {
 			if !item.IsDir {
 				effectiveSelection[item.Path] = true
 			} else {
+				// For selected directories, count all non-deselected files
 				prefix := item.Path + string(os.PathSeparator)
 				for _, child := range m.files {
 					if !child.IsDir && strings.HasPrefix(child.Path, prefix) && !m.deselected[child.Path] {
-						if useSearchResults && !searchResultPaths[child.Path] {
-							continue
+						if isFilteringBySearch && !searchResultPaths[child.Path] {
+							isChildInSearchResultScope := false
+							childPathEval := child.Path
+							for {
+								if searchResultPaths[childPathEval] {
+									isChildInSearchResultScope = true
+									break
+								}
+								parent := filepath.Dir(childPathEval)
+								if parent == childPathEval || parent == "." || parent == "/" {
+									break
+								}
+								childPathEval = parent
+							}
+							if !isChildInSearchResultScope {
+								continue
+							}
 						}
 						effectiveSelection[child.Path] = true
 					}
@@ -462,21 +623,26 @@ func (m *Model) getSelectedFileCount() int {
 			continue
 		}
 
+		// Handle files within selected directories (implicit selection)
 		if !item.IsDir {
 			parent := filepath.Dir(item.Path)
 			isInSelectedDir := false
-			for parent != "." && parent != "/" {
+			for parent != "." && parent != "/" && parent != "" {
 				if m.selected[parent] {
 					isInSelectedDir = true
 					break
 				}
+				prevParent := parent
 				parent = filepath.Dir(parent)
+				if parent == prevParent {
+					break
+				}
 			}
+
 			if isInSelectedDir {
 				effectiveSelection[item.Path] = true
 			}
 		}
 	}
-
 	return len(effectiveSelection)
 }
