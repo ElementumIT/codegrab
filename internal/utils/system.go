@@ -8,9 +8,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"unicode"
+
+	"math/big"
 )
 
 // CopyFileObject attempts to place a "file object" onto the clipboard.
@@ -141,16 +142,21 @@ func ParseSizeString(sizeStr string) (int64, error) {
 		return 0, fmt.Errorf("invalid size unit: %q in %q", unitPart, sizeStr)
 	}
 
-	valueFloat, err := strconv.ParseFloat(numPart, 64)
+	// Use math/big for high precision to avoid float64 overflow or loss.
+	bf, _, err := big.ParseFloat(numPart, 10, 256, big.ToZero)
 	if err != nil {
 		return 0, fmt.Errorf("invalid numeric value %q: %w", numPart, err)
 	}
 
-	if valueFloat < 0 {
-		return 0, fmt.Errorf("size cannot be negative: %f", valueFloat)
+	if bf.Sign() < 0 {
+		return 0, fmt.Errorf("size cannot be negative: %s", numPart)
 	}
 
-	bytesValue := int64(valueFloat * float64(multiplier))
+	bf.Mul(bf, new(big.Float).SetInt64(multiplier))
+	resultInt, _ := bf.Int(nil) // truncate towards zero
+	if !resultInt.IsInt64() {
+		return 0, fmt.Errorf("size %q overflows int64", sizeStr)
+	}
 
-	return bytesValue, nil
+	return resultInt.Int64(), nil
 }
