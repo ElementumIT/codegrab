@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -45,7 +46,7 @@ func IsTextFile(filePath string) (bool, error) {
 
 	buf := make([]byte, sampleSize)
 	n, err := file.Read(buf)
-	if err != nil && err.Error() != "EOF" {
+	if err != nil && !errors.Is(err, io.EOF) {
 		return false, fmt.Errorf("failed to read file content for %s: %w", filePath, err)
 	}
 	if n == 0 {
