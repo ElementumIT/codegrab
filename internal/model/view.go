@@ -2,13 +2,13 @@ package model
 
 import (
 	"fmt"
-	"github.com/epilande/codegrab/internal/ui/themes"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/ui"
+	"github.com/epilande/codegrab/internal/ui/themes"
 	"github.com/epilande/codegrab/internal/utils"
 )
 
@@ -21,7 +21,7 @@ func (m Model) View() string {
 		footerText := "Exit: esc" // Example footer text for height calculation
 		footer := ui.GetStyleHelp().Render(footerText)
 		footerHeight := lipgloss.Height(footer)
-		availableHeight := m.height - headerHeight - footerHeight
+		availableHeight := m.height - headerHeight - footerHeight - (2 * ui.BorderSize)
 		if availableHeight < 0 {
 			availableHeight = 0
 		}
