@@ -452,11 +452,11 @@ func (m *Model) refreshViewportContent() {
 		icon := node.Icon
 		iconColor := node.IconColor
 		// Handle directory icon state (open/closed)
-		if node.IsDir && icon == "" {
+		if node.IsDir && icon == "" {
 			if m.collapsed[node.Path] {
-				icon = "" // Collapsed icon
+				icon = "" // Collapsed icon
 			} else {
-				icon = "" // Expanded icon
+				icon = "" // Expanded icon
 			}
 			iconColor = "" // Use theme directory color by default
 		}
