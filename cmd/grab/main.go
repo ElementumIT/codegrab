@@ -14,6 +14,7 @@ import (
 	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/generator"
 	"github.com/epilande/codegrab/internal/generator/formats"
+	"github.com/epilande/codegrab/internal/git"
 	"github.com/epilande/codegrab/internal/model"
 	"github.com/epilande/codegrab/internal/ui"
 	"github.com/epilande/codegrab/internal/ui/themes"
@@ -126,15 +127,44 @@ func main() {
 
 	// Use current directory if no argument is provided
 	root := "."
+	var cleanup func()
+	var isGitRepo bool
+
 	if flag.NArg() > 0 {
-		root = flag.Arg(0)
+		arg := flag.Arg(0)
+
+		// Check if the argument is a Git URL
+		if git.IsGitURL(arg) {
+			fmt.Printf("🔄 Cloning repository: %s\n", arg)
+
+			clonedPath, cleanupFunc, err := git.CloneRepository(arg)
+			if err != nil {
+				log.Fatalf("Error cloning repository: %v", err)
+			}
+
+			root = clonedPath
+			cleanup = cleanupFunc
+			isGitRepo = true
+
+			fmt.Printf("✅ Repository cloned to: %s\n", root)
+		} else {
+			root = arg
+		}
 	}
 
-	absRoot, err := filepath.Abs(root)
-	if err != nil {
-		log.Fatalf("Error getting absolute path for %q: %v", root, err)
+	// Set up cleanup for Git repositories
+	if cleanup != nil {
+		defer cleanup()
 	}
-	root = absRoot
+
+	// Convert to absolute path for local directories
+	if !isGitRepo {
+		absRoot, err := filepath.Abs(root)
+		if err != nil {
+			log.Fatalf("Error getting absolute path for %q: %v", root, err)
+		}
+		root = absRoot
+	}
 
 	// Validate the provided path
 	if stat, err := os.Stat(root); err != nil {
