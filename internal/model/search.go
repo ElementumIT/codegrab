@@ -8,26 +8,27 @@ import (
 
 // fuzzyMatch checks if query fuzzy matches the target string
 func fuzzyMatch(query, target string) bool {
-	query = strings.ToLower(query)
-	target = strings.ToLower(target)
+	// Normalize query and target strings
+	queryRunes := []rune(strings.ToLower(strings.TrimSpace(query)))
+	targetRunes := []rune(strings.ToLower(target))
 
-	if query == "" {
+	if len(queryRunes) == 0 {
 		return true
 	}
 
 	queryIdx := 0
-	for _, char := range target {
-		if queryIdx < len(query) && unicode.ToLower(char) == rune(query[queryIdx]) {
+	for _, char := range targetRunes {
+		if queryIdx < len(queryRunes) && unicode.ToLower(char) == queryRunes[queryIdx] {
 			queryIdx++
 		}
 	}
-	return queryIdx == len(query)
+	return queryIdx == len(queryRunes)
 }
 
 // updateSearchResults filters displayNodes based on search query and preserves folder structure
 func (m *Model) updateSearchResults() {
 	m.searchResults = nil
-	query := m.searchInput.Value()
+	query := strings.TrimSpace(m.searchInput.Value())
 
 	// If query is empty, return without setting search results
 	if query == "" {

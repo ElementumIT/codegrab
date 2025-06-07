@@ -28,6 +28,8 @@ func TestFuzzyMatch(t *testing.T) {
 		{"tfile", "test_file.go", true},  // Skip underscore
 		{"tfil", "test_file.go", true},   // Skip underscore and letters
 		{"tstfil", "test_file.go", true}, // Skip underscore and more letters
+		{" main ", "main.go", true},      // Leading/trailing spaces
+		{"Äc", "aÄc.go", true},           // Unicode characters
 	}
 
 	for _, tc := range testCases {
