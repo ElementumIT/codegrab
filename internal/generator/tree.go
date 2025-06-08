@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/epilande/codegrab/internal/cache"
 	"github.com/epilande/codegrab/internal/secrets"
 	"github.com/epilande/codegrab/internal/utils"
 )
@@ -34,12 +35,11 @@ func (g *Generator) buildTree() *Node {
 			fullPath := filepath.Join(g.RootPath, path)
 			info, err := os.Stat(fullPath)
 			if err != nil {
-				// Skip files that no longer exist
 				continue
 			}
 			if !info.IsDir() {
-				if ok, err := utils.IsTextFile(fullPath); err != nil || !ok {
-					// Skip non-text files
+				fileCache := cache.GetGlobalFileCache()
+				if ok, err := fileCache.GetTextFileStatus(fullPath, utils.IsTextFile); err != nil || !ok {
 					continue
 				}
 			}
@@ -85,8 +85,9 @@ func (g *Generator) buildTree() *Node {
 				current.Children = append(current.Children, newNode)
 				current = newNode
 				if !isDir {
-					if contentBytes, err := os.ReadFile(filepath.Join(g.RootPath, fullPath)); err == nil {
-						content := string(contentBytes)
+					fileCache := cache.GetGlobalFileCache()
+					absolutePath := filepath.Join(g.RootPath, fullPath)
+					if content, err := fileCache.Get(absolutePath); err == nil {
 						newNode.Content = content
 						newNode.Language = determineLanguage(part)
 						if g.SecretScanner != nil {

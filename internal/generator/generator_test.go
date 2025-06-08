@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/epilande/codegrab/internal/cache"
 	"github.com/epilande/codegrab/internal/filesystem"
 )
 
@@ -78,6 +79,9 @@ func TestGetFormatNameWithNoFormat(t *testing.T) {
 }
 
 func TestPrepareTemplateData(t *testing.T) {
+	// Reset cache to ensure clean state
+	cache.ResetGlobalCache()
+
 	tempDir, err := os.MkdirTemp("", "generator-test")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)

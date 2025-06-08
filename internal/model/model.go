@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 
+	"github.com/epilande/codegrab/internal/cache"
 	"github.com/epilande/codegrab/internal/dependencies"
 	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/generator"
@@ -114,8 +115,8 @@ func (m *Model) updatePreview() {
 			// For files, read the content
 			fullPath := filepath.Join(m.rootPath, node.Path)
 
-			// Check if it's a text file
-			isText, err := utils.IsTextFile(fullPath)
+			fileCache := cache.GetGlobalFileCache()
+			isText, err := fileCache.GetTextFileStatus(fullPath, utils.IsTextFile)
 			if err != nil {
 				m.currentPreviewContent = fmt.Sprintf("Error reading file: %v", err)
 				return
@@ -126,8 +127,7 @@ func (m *Model) updatePreview() {
 				return
 			}
 
-			// Read file content
-			content, err := os.ReadFile(fullPath)
+			content, err := fileCache.Get(fullPath)
 			if err != nil {
 				m.currentPreviewContent = fmt.Sprintf("Error reading file: %v", err)
 				return
@@ -139,7 +139,7 @@ func (m *Model) updatePreview() {
 			availableWidth := m.previewViewport.Width - 4
 
 			// Process the content to handle line wrapping consistently
-			rawContent := string(content)
+			rawContent := content
 
 			// If the preview viewport width is set, ensure content fits properly
 			if m.previewViewport.Width > 0 && availableWidth > 0 {

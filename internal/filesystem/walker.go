@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/epilande/codegrab/internal/cache"
 	"github.com/epilande/codegrab/internal/utils"
 )
 
@@ -81,12 +82,10 @@ func WalkDirectory(root string, gitIgnore *GitIgnoreManager, filter *FilterManag
 			return nil
 		}
 
-		// Skip non-text files
-		if ok, err := utils.IsTextFile(path); err != nil || !ok {
+		fileCache := cache.GetGlobalFileCache()
+		if ok, err := fileCache.GetTextFileStatus(path, utils.IsTextFile); err != nil || !ok {
 			return nil
 		}
-
-		// Add the file if it passed all checks
 		files = append(files, FileItem{
 			Path:  relPath,
 			IsDir: false,
