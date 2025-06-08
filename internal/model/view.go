@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/ui"
 	"github.com/epilande/codegrab/internal/ui/themes"
 	"github.com/epilande/codegrab/internal/utils"
@@ -394,7 +395,43 @@ func (m *Model) refreshViewportContent() {
 	}
 
 	dirsWithSelectedChildren := make(map[string]bool)
+	dirSelectedCounts := make(map[string]int)
+	
+	// When in search mode, only consider files that are in search results
+	var relevantFiles []filesystem.FileItem
+	if m.isSearching && len(m.searchResults) > 0 {
+		// Create a map of search result paths for quick lookup
+		searchPaths := make(map[string]bool)
+		for _, node := range m.searchResults {
+			searchPaths[node.Path] = true
+		}
+		
+		// Only include files that are in search results
+		for _, file := range m.files {
+			if searchPaths[file.Path] {
+				relevantFiles = append(relevantFiles, file)
+			}
+		}
+	} else {
+		relevantFiles = m.files
+	}
+	
+	// Calculate directory statistics based on relevant files only
 	for path := range m.selected {
+		// Skip if this path is not in our relevant set when searching
+		if m.isSearching && len(m.searchResults) > 0 {
+			found := false
+			for _, file := range relevantFiles {
+				if file.Path == path {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		
 		dir := filepath.Dir(path)
 		// Mark parent directories that contain selected items
 		for dir != "." && dir != "/" && dir != "" {
@@ -407,8 +444,7 @@ func (m *Model) refreshViewportContent() {
 		}
 	}
 
-	dirSelectedCounts := make(map[string]int)
-	for _, file := range m.files {
+	for _, file := range relevantFiles {
 		if !file.IsDir && m.selected[file.Path] && !m.deselected[file.Path] {
 			dir := filepath.Dir(file.Path)
 			for dir != "." && dir != "/" && dir != "" {
