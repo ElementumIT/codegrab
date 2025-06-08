@@ -104,6 +104,35 @@ func (fc *FileCache) Preload(filePath string) error {
 	return err
 }
 
+func (fc *FileCache) GetLazy(filePath string) (string, error) {
+	return fc.Get(filePath)
+}
+
+func (fc *FileCache) CacheMetadataOnly(filePath string) error {
+	fc.mu.Lock()
+	defer fc.mu.Unlock()
+
+	if _, exists := fc.entries[filePath]; exists {
+		return nil
+	}
+
+	stat, err := os.Stat(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to stat file %s: %w", filePath, err)
+	}
+
+	entry := &CacheEntry{
+		Content:  "",
+		ModTime:  stat.ModTime(),
+		Size:     stat.Size(),
+		LoadTime: time.Now(),
+	}
+	fc.entries[filePath] = entry
+	fc.usage[filePath] = time.Now()
+
+	return nil
+}
+
 func (fc *FileCache) Contains(filePath string) bool {
 	fc.mu.RLock()
 	defer fc.mu.RUnlock()
@@ -214,4 +243,3 @@ func (fc *FileCache) removeEntry(filePath string) {
 		delete(fc.usage, filePath)
 	}
 }
-

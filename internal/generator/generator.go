@@ -211,7 +211,7 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 	}
 
 	var filesData []FileData
-	collectFiles(rootNode, &filesData)
+	collectFiles(rootNode, &filesData, g.RootPath, &g.SecretScanner)
 
 	secretCount := 0
 

@@ -87,19 +87,10 @@ func (g *Generator) buildTree() *Node {
 				if !isDir {
 					fileCache := cache.GetGlobalFileCache()
 					absolutePath := filepath.Join(g.RootPath, fullPath)
-					if content, err := fileCache.Get(absolutePath); err == nil {
-						newNode.Content = content
+					if err := fileCache.CacheMetadataOnly(absolutePath); err == nil {
 						newNode.Language = determineLanguage(part)
-						if g.SecretScanner != nil {
-							findings, scanErr := g.SecretScanner.Scan(content)
-							if scanErr != nil {
-								fmt.Fprintf(os.Stderr, "Warning: failed to scan %s for secrets: %v\n", fullPath, scanErr)
-							} else if len(findings) > 0 {
-								newNode.Findings = findings
-							}
-						}
 					} else {
-						fmt.Fprintf(os.Stderr, "Warning: failed to read file %s: %v\n", fullPath, err)
+						fmt.Fprintf(os.Stderr, "Warning: failed to cache metadata for %s: %v\n", fullPath, err)
 					}
 				}
 			}
@@ -159,17 +150,26 @@ func renderTree(node *Node, prefix string, isLast bool, builder *strings.Builder
 	}
 }
 
-func collectFiles(node *Node, files *[]FileData) {
-	if !node.IsDir && node.Content != "" {
-		*files = append(*files, FileData{
-			Path:     node.Path,
-			Content:  node.Content,
-			Language: node.Language,
-			Findings: node.Findings,
-		})
+func collectFiles(node *Node, files *[]FileData, rootPath string, secretScanner *secrets.Scanner) {
+	if !node.IsDir {
+		fileCache := cache.GetGlobalFileCache()
+		absolutePath := filepath.Join(rootPath, node.Path)
+
+		if content, err := fileCache.GetLazy(absolutePath); err == nil {
+			node.Content = content
+
+			*files = append(*files, FileData{
+				Path:     node.Path,
+				Content:  content,
+				Language: node.Language,
+				Findings: nil,
+			})
+		} else {
+			fmt.Fprintf(os.Stderr, "Warning: failed to read file %s: %v\n", node.Path, err)
+		}
 	}
 	for _, child := range node.Children {
-		collectFiles(child, files)
+		collectFiles(child, files, rootPath, secretScanner)
 	}
 }
 
