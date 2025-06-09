@@ -29,7 +29,7 @@ to your clipboard, ready for LLM processing.
 - 🌲 **Directory Tree View**: Display a tree-style view of your project structure
 - 🧮 **Token Estimation**: Get estimated token count for LLM context windows
 - 🛡️ **Secret Detection & Redaction**: Uses [gitleaks](https://github.com/gitleaks/gitleaks) to identify potential secrets and prevent sharing sensitive information
-- 🔗 **Dependency Resolution**: Automatically include dependencies for Go, JS/TS when using the `--deps` flag
+- 🔗 **Dependency Resolution**: Automatically include dependencies for Go, JS/TS, Python when using the `--deps` flag
 - 🌐 **Remote Git Repo Support**: Analyze remote repositories by passing Git URLs (supports GitHub, GitLab, Bitbucket, SSH, HTTPS)
 
 ## 📦 Installation
@@ -230,6 +230,7 @@ CodeGrab can automatically include dependencies for selected files, making it ea
 - **Supported Languages**:
   - **Go**: Resolves relative imports and project-local module imports (if `go.mod` is present).
   - **JavaScript/TypeScript**: Resolves relative imports/requires for `.js`, `.jsx`, `.ts`, and `.tsx` files, including directory `index` files.
+  - **Python**: Resolves relative imports for `.py` files within the project structure.
 - **Enabling**:
   - **Interactive Mode**: Press <kbd>D</kbd> to toggle dependency resolution on/off. A `🔗 Deps` indicator will appear in the footer when active. Files added as dependencies will be marked with `[dep]`.
   - **Non-Interactive Mode**: Use the `--deps` flag.
