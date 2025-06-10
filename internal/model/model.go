@@ -72,6 +72,7 @@ type Model struct {
 	currentPreviewIsDir   bool
 	lastKeyTime           int64  // Last key press time
 	lastKey               string // Last key pressed
+	tokenCache            *TokenCache
 }
 
 type Config struct {
@@ -224,5 +225,6 @@ func NewModel(config Config) Model {
 		cursor:         0,
 		showTokenCount: config.ShowTokenCount,
 		showPreview:    false,
+		tokenCache:     NewTokenCache(),
 	}
 }

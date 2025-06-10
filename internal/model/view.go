@@ -10,7 +10,6 @@ import (
 	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/ui"
 	"github.com/epilande/codegrab/internal/ui/themes"
-	"github.com/epilande/codegrab/internal/utils"
 )
 
 // View renders the entire UI model.
@@ -526,14 +525,9 @@ func (m *Model) refreshViewportContent() {
 				rawSuffix += " [dep]"
 			}
 			if m.showTokenCount {
-				// Check if it's a text file and estimate tokens
-				if ok, err := utils.IsTextFile(node.Path); ok && err == nil {
-					if contentBytes, err := os.ReadFile(node.Path); err == nil {
-						content := string(contentBytes)
-						tokensEstimate := utils.EstimateTokens(content)
-						rawSuffix += fmt.Sprintf(" [%d tokens]", tokensEstimate)
-					}
-				}
+				// Use cached tokens for non-blocking UI rendering
+				tokensFormatted := m.tokenCache.GetTokensFormatted(node.Path)
+				rawSuffix += tokensFormatted
 			}
 		}
 		isCursorLine := i == m.cursor
