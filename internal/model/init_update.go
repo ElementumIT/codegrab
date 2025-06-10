@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/epilande/codegrab/internal/utils"
 
@@ -297,6 +298,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Handle single keys
 		switch currentKey {
 		case "q", "ctrl+c":
+			if m.tokenCache != nil {
+				m.tokenCache.Close()
+			}
 			return m, tea.Quit
 		case "j", "down", "ctrl+n":
 			if m.previewFocused && m.showPreview {

@@ -29,7 +29,8 @@ to your clipboard, ready for LLM processing.
 - 🌲 **Directory Tree View**: Display a tree-style view of your project structure
 - 🧮 **Token Estimation**: Get estimated token count for LLM context windows
 - 🛡️ **Secret Detection & Redaction**: Uses [gitleaks](https://github.com/gitleaks/gitleaks) to identify potential secrets and prevent sharing sensitive information
-- 🔗 **Dependency Resolution**: Automatically include dependencies for Go, JS/TS when using the `--deps` flag
+- 🔗 **Dependency Resolution**: Automatically include dependencies for Go, JS/TS, Python when using the `--deps` flag
+- 🌐 **Remote Git Repo Support**: Analyze remote repositories by passing Git URLs (supports GitHub, GitLab, Bitbucket, SSH, HTTPS)
 
 ## 📦 Installation
 
@@ -84,9 +85,10 @@ grab [options] [directory]
 
 ### Arguments
 
-| Argument    | Description                                           |
-| :---------- | :---------------------------------------------------- |
-| `directory` | Optional path to the project directory (default: ".") |
+| Argument    | Description                                                                     |
+| :---------- | :------------------------------------------------------------------------------ |
+| `directory` | Optional path to the project directory (default: ".")                           |
+| `git-url`   | Git repository URL (GitHub, GitLab, Bitbucket, SSH, HTTPS) to clone and analyze |
 
 ### Options
 
@@ -157,6 +159,24 @@ grab [options] [directory]
    grab -g="*.{ts,tsx}" -g="\!*.spec.{ts,tsx}"
    ```
 
+9. Analyze a remote Git repository:
+
+   ```bash
+   grab https://github.com/user/repo.git
+   ```
+
+10. Analyze a remote repository non-interactively with dependencies:
+
+    ```bash
+    grab -n --deps https://github.com/user/repo.git
+    ```
+
+11. Clone and analyze using SSH:
+
+    ```bash
+    grab git@github.com:user/repo.git
+    ```
+
 ## ⌨️ Keyboard Controls
 
 ### Navigation
@@ -210,6 +230,7 @@ CodeGrab can automatically include dependencies for selected files, making it ea
 - **Supported Languages**:
   - **Go**: Resolves relative imports and project-local module imports (if `go.mod` is present).
   - **JavaScript/TypeScript**: Resolves relative imports/requires for `.js`, `.jsx`, `.ts`, and `.tsx` files, including directory `index` files.
+  - **Python**: Resolves relative imports for `.py` files within the project structure.
 - **Enabling**:
   - **Interactive Mode**: Press <kbd>D</kbd> to toggle dependency resolution on/off. A `🔗 Deps` indicator will appear in the footer when active. Files added as dependencies will be marked with `[dep]`.
   - **Non-Interactive Mode**: Use the `--deps` flag.
@@ -219,6 +240,19 @@ CodeGrab can automatically include dependencies for selected files, making it ea
   - `-1`: Includes all dependencies recursively (unlimited depth).
 
 ![codegrab-deps](https://github.com/user-attachments/assets/db04805c-a0b0-4249-ab48-da3d7b92000c)
+
+## 🌐 Git Repository Support
+
+CodeGrab can directly analyze remote Git repositories without requiring manual cloning. Simply pass a Git URL as the directory argument, and CodeGrab will automatically clone the repository to a temporary directory.
+
+- **Supported URL Formats**:
+  - HTTPS: `https://github.com/user/repo.git` or `https://github.com/user/repo`
+  - SSH: `git@github.com:user/repo.git`
+  - SSH with protocol: `ssh://git@github.com/user/repo.git`
+  - Supports GitHub, GitLab, Bitbucket, and other Git hosting platforms
+- **Efficient Cloning**: Uses shallow cloning (`--depth=1`) to only fetch the latest commit, making it fast and lightweight
+- **Automatic Cleanup**: Temporary directories are automatically cleaned up after processing
+- **Full Feature Support**: All CodeGrab features work with remote repositories (filtering, dependency resolution, secret detection, etc.)
 
 ## 🛡️ Secret Detection & Redaction
 

@@ -58,26 +58,37 @@ func TestBuildTree(t *testing.T) {
 	}
 
 	foundFiles := make(map[string]bool)
-	var collectFiles func(*Node)
-	collectFiles = func(node *Node) {
+	var collectFilesTest func(*Node)
+	collectFilesTest = func(node *Node) {
 		if !node.IsDir {
 			foundFiles[node.Path] = true
-			expectedContent := ""
-			for _, tf := range testFiles {
-				if tf.path == node.Path {
-					expectedContent = tf.content
-					break
-				}
-			}
-			if node.Content != expectedContent {
-				t.Errorf("Expected content of %q to be %q, got %q", node.Path, expectedContent, node.Content)
-			}
 		}
 		for _, child := range node.Children {
-			collectFiles(child)
+			collectFilesTest(child)
 		}
 	}
-	collectFiles(root)
+	collectFilesTest(root)
+
+	// Test lazy loading by using the actual collectFiles function
+	var files []FileData
+	collectFiles(root, &files, tempDir, nil)
+
+	if len(files) != len(testFiles) {
+		t.Errorf("Expected %d files from collectFiles, got %d", len(testFiles), len(files))
+	}
+
+	contentMap := make(map[string]string)
+	for _, file := range files {
+		contentMap[file.Path] = file.Content
+	}
+
+	for _, tf := range testFiles {
+		if content, ok := contentMap[tf.path]; ok {
+			if content != tf.content {
+				t.Errorf("Expected content of %q to be %q, got %q", tf.path, tf.content, content)
+			}
+		}
+	}
 
 	for _, tf := range testFiles {
 		if !foundFiles[tf.path] {
@@ -240,6 +251,33 @@ func TestSortTree(t *testing.T) {
 }
 
 func TestCollectFiles(t *testing.T) {
+	// Create temporary files for testing
+	tempDir, err := os.MkdirTemp("", "collect-files-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	testFiles := []struct {
+		path    string
+		content string
+	}{
+		{"file1.txt", "Content 1"},
+		{"subdir/file2.go", "Content 2"},
+	}
+
+	// Create the test files
+	for _, tf := range testFiles {
+		path := filepath.Join(tempDir, filepath.FromSlash(tf.path))
+		dir := filepath.Dir(path)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatalf("Failed to create directory %s: %v", dir, err)
+		}
+		if err := os.WriteFile(path, []byte(tf.content), 0644); err != nil {
+			t.Fatalf("Failed to create file %s: %v", path, err)
+		}
+	}
+
 	root := &Node{
 		Name:  "root",
 		IsDir: true,
@@ -247,7 +285,6 @@ func TestCollectFiles(t *testing.T) {
 			{
 				Name:     "file1.txt",
 				Path:     "file1.txt",
-				Content:  "Content 1",
 				Language: "text",
 				IsDir:    false,
 			},
@@ -259,7 +296,6 @@ func TestCollectFiles(t *testing.T) {
 					{
 						Name:     "file2.go",
 						Path:     "subdir/file2.go",
-						Content:  "Content 2",
 						Language: "go",
 						IsDir:    false,
 					},
@@ -269,7 +305,7 @@ func TestCollectFiles(t *testing.T) {
 	}
 
 	var files []FileData
-	collectFiles(root, &files)
+	collectFiles(root, &files, tempDir, nil)
 
 	if len(files) != 2 {
 		t.Fatalf("Expected 2 files, got %d", len(files))

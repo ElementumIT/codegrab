@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/epilande/codegrab/internal/cache"
 	"github.com/epilande/codegrab/internal/filesystem"
 	"github.com/epilande/codegrab/internal/secrets"
 	"github.com/epilande/codegrab/internal/utils"
@@ -180,7 +181,8 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 		if info.IsDir() {
 			continue
 		} else {
-			isText, textErr := utils.IsTextFile(fullPath)
+			fileCache := cache.GetGlobalFileCache()
+			isText, textErr := fileCache.GetTextFileStatus(fullPath, utils.IsTextFile)
 			if textErr != nil {
 				fmt.Fprintf(os.Stderr, "Warning: Skipping %s during preparation (error checking type): %v\n", path, textErr)
 				continue
@@ -209,7 +211,7 @@ func (g *Generator) PrepareTemplateData() (TemplateData, error) {
 	}
 
 	var filesData []FileData
-	collectFiles(rootNode, &filesData)
+	collectFiles(rootNode, &filesData, g.RootPath, &g.SecretScanner)
 
 	secretCount := 0
 

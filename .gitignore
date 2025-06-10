@@ -1,5 +1,8 @@
 .DS_Store
-
 *.log
+*.prof
+*.pprof
 bin/
 dist/
+perf_results/
+/grab

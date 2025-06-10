@@ -156,15 +156,13 @@ func (m *Model) toggleSelection(path string, isDir bool) tea.Cmd {
 			useSearchResults := m.isSearching && len(m.searchResults) > 0
 			if useSearchResults {
 				for _, node := range m.searchResults {
-					if !node.IsDir {
-						searchResultPaths[node.Path] = true
-					}
+					searchResultPaths[node.Path] = true
 				}
 			}
 
 			for _, f := range m.files {
 				if strings.HasPrefix(f.Path, path+"/") {
-					if useSearchResults && !f.IsDir && !searchResultPaths[f.Path] {
+					if useSearchResults && !searchResultPaths[f.Path] {
 						continue
 					}
 

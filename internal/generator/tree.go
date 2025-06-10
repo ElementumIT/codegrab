@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
+	"sync"
 
+	"github.com/epilande/codegrab/internal/cache"
 	"github.com/epilande/codegrab/internal/secrets"
 	"github.com/epilande/codegrab/internal/utils"
 )
@@ -34,12 +37,11 @@ func (g *Generator) buildTree() *Node {
 			fullPath := filepath.Join(g.RootPath, path)
 			info, err := os.Stat(fullPath)
 			if err != nil {
-				// Skip files that no longer exist
 				continue
 			}
 			if !info.IsDir() {
-				if ok, err := utils.IsTextFile(fullPath); err != nil || !ok {
-					// Skip non-text files
+				fileCache := cache.GetGlobalFileCache()
+				if ok, err := fileCache.GetTextFileStatus(fullPath, utils.IsTextFile); err != nil || !ok {
 					continue
 				}
 			}
@@ -85,20 +87,12 @@ func (g *Generator) buildTree() *Node {
 				current.Children = append(current.Children, newNode)
 				current = newNode
 				if !isDir {
-					if contentBytes, err := os.ReadFile(filepath.Join(g.RootPath, fullPath)); err == nil {
-						content := string(contentBytes)
-						newNode.Content = content
+					fileCache := cache.GetGlobalFileCache()
+					absolutePath := filepath.Join(g.RootPath, fullPath)
+					if err := fileCache.CacheMetadataOnly(absolutePath); err == nil {
 						newNode.Language = determineLanguage(part)
-						if g.SecretScanner != nil {
-							findings, scanErr := g.SecretScanner.Scan(content)
-							if scanErr != nil {
-								fmt.Fprintf(os.Stderr, "Warning: failed to scan %s for secrets: %v\n", fullPath, scanErr)
-							} else if len(findings) > 0 {
-								newNode.Findings = findings
-							}
-						}
 					} else {
-						fmt.Fprintf(os.Stderr, "Warning: failed to read file %s: %v\n", fullPath, err)
+						fmt.Fprintf(os.Stderr, "Warning: failed to cache metadata for %s: %v\n", fullPath, err)
 					}
 				}
 			}
@@ -158,17 +152,194 @@ func renderTree(node *Node, prefix string, isLast bool, builder *strings.Builder
 	}
 }
 
-func collectFiles(node *Node, files *[]FileData) {
-	if !node.IsDir && node.Content != "" {
-		*files = append(*files, FileData{
-			Path:     node.Path,
-			Content:  node.Content,
-			Language: node.Language,
-			Findings: node.Findings,
+// fileWorkItem represents a file to be processed
+type fileWorkItem struct {
+	node *Node
+	path string
+}
+
+// ConcurrentFileCollector handles concurrent file content reading
+type ConcurrentFileCollector struct {
+	maxWorkers int
+	rootPath   string
+}
+
+// NewConcurrentFileCollector creates a new concurrent file collector
+func NewConcurrentFileCollector(rootPath string) *ConcurrentFileCollector {
+	return &ConcurrentFileCollector{
+		maxWorkers: runtime.NumCPU(),
+		rootPath:   rootPath,
+	}
+}
+
+// collectFiles intelligently chooses between concurrent and sequential based on file count
+func collectFiles(node *Node, files *[]FileData, rootPath string, secretScanner *secrets.Scanner) {
+	// Count files to determine best approach
+	fileCount := countFiles(node)
+	
+	// Use concurrent approach only for larger file sets where the overhead is worth it
+	const concurrentThreshold = 50
+	
+	if fileCount >= concurrentThreshold {
+		collector := NewConcurrentFileCollector(rootPath)
+		result, err := collector.CollectFilesConcurrent(node, secretScanner)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: concurrent file collection failed, falling back to sequential: %v\n", err)
+			collectFilesSequential(node, files, rootPath, secretScanner)
+			return
+		}
+		*files = result
+	} else {
+		// Use sequential for smaller file sets
+		collectFilesSequential(node, files, rootPath, secretScanner)
+	}
+}
+
+// countFiles recursively counts the number of files in the tree
+func countFiles(node *Node) int {
+	if !node.IsDir {
+		return 1
+	}
+	
+	count := 0
+	for _, child := range node.Children {
+		count += countFiles(child)
+	}
+	return count
+}
+
+// CollectFilesConcurrent performs concurrent file content reading
+func (c *ConcurrentFileCollector) CollectFilesConcurrent(node *Node, secretScanner *secrets.Scanner) ([]FileData, error) {
+	// First pass: collect all file work items
+	var workItems []fileWorkItem
+	c.collectWorkItems(node, &workItems)
+
+	if len(workItems) == 0 {
+		return []FileData{}, nil
+	}
+
+	// Create channels for work distribution
+	workQueue := make(chan fileWorkItem, len(workItems))
+	resultQueue := make(chan FileData, len(workItems))
+	errorChan := make(chan error, c.maxWorkers)
+
+	// Populate work queue
+	for _, item := range workItems {
+		workQueue <- item
+	}
+	close(workQueue)
+
+	var wg sync.WaitGroup
+	var firstError error
+
+	// Start worker goroutines
+	for i := 0; i < c.maxWorkers; i++ {
+		wg.Add(1)
+		go c.fileWorker(workQueue, resultQueue, errorChan, &wg)
+	}
+
+	// Start error collector
+	errorDone := make(chan struct{})
+	go func() {
+		defer close(errorDone)
+		for err := range errorChan {
+			if firstError == nil {
+				firstError = err
+			}
+			fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
+		}
+	}()
+
+	// Wait for workers to complete
+	go func() {
+		wg.Wait()
+		close(resultQueue)
+		close(errorChan)
+	}()
+
+	// Collect results
+	var files []FileData
+	for fileData := range resultQueue {
+		files = append(files, fileData)
+	}
+
+	// Wait for error collector to finish
+	<-errorDone
+
+	// Sort files to maintain consistent order (by path)
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Path < files[j].Path
+	})
+
+	return files, firstError
+}
+
+// collectWorkItems recursively gathers all file work items from the tree
+func (c *ConcurrentFileCollector) collectWorkItems(node *Node, workItems *[]fileWorkItem) {
+	if !node.IsDir {
+		*workItems = append(*workItems, fileWorkItem{
+			node: node,
+			path: filepath.Join(c.rootPath, node.Path),
 		})
 	}
 	for _, child := range node.Children {
-		collectFiles(child, files)
+		c.collectWorkItems(child, workItems)
+	}
+}
+
+// fileWorker processes files from the work queue
+func (c *ConcurrentFileCollector) fileWorker(workQueue <-chan fileWorkItem, resultQueue chan<- FileData, errorChan chan<- error, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	fileCache := cache.GetGlobalFileCache()
+
+	for item := range workQueue {
+		content, err := fileCache.GetLazy(item.path)
+		if err != nil {
+			select {
+			case errorChan <- fmt.Errorf("failed to read file %s: %w", item.node.Path, err):
+			default:
+			}
+			continue
+		}
+
+		// Update node content for potential tree rendering
+		item.node.Content = content
+
+		// Send result to collector
+		select {
+		case resultQueue <- FileData{
+			Path:     item.node.Path,
+			Content:  content,
+			Language: item.node.Language,
+			Findings: nil, // Will be populated by secret scanner later
+		}:
+		default:
+		}
+	}
+}
+
+// collectFilesSequential is the original sequential implementation as fallback
+func collectFilesSequential(node *Node, files *[]FileData, rootPath string, secretScanner *secrets.Scanner) {
+	if !node.IsDir {
+		fileCache := cache.GetGlobalFileCache()
+		absolutePath := filepath.Join(rootPath, node.Path)
+
+		if content, err := fileCache.GetLazy(absolutePath); err == nil {
+			node.Content = content
+
+			*files = append(*files, FileData{
+				Path:     node.Path,
+				Content:  content,
+				Language: node.Language,
+				Findings: nil,
+			})
+		} else {
+			fmt.Fprintf(os.Stderr, "Warning: failed to read file %s: %v\n", node.Path, err)
+		}
+	}
+	for _, child := range node.Children {
+		collectFilesSequential(child, files, rootPath, secretScanner)
 	}
 }
 
