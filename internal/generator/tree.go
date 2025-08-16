@@ -36,28 +36,30 @@ func (g *Generator) buildTree() *Node {
 	seen := make(map[string]bool)
 	origForNormalized := make(map[string]string)
 
-	for origPath, selected := range g.SelectedFiles {
-		if !selected || origPath == "" {
-			continue
-		}
+       for origPath, selected := range g.SelectedFiles {
+	       if !selected || origPath == "" {
+		       continue
+	       }
 
-		// Stat the original path (with any backslashes) first
-		origFull := filepath.Join(g.RootPath, origPath)
-		info, err := os.Stat(origFull)
-		if err != nil {
-			continue
-		}
-		if info.IsDir() {
-			continue // we only add files; directories inferred from files
-		}
-		fileCache := cache.GetGlobalFileCache()
-		if ok, err := fileCache.GetTextFileStatus(origFull, utils.IsTextFile); err != nil || !ok {
-			continue
-		}
+	       // Always normalize path to use forward slashes
+	       normPath := strings.ReplaceAll(origPath, "\\", "/")
+	       normPath = filepath.ToSlash(filepath.Clean(normPath))
 
-		// Build a normalized version for tree structure (treat backslashes as separators everywhere)
-		raw := strings.ReplaceAll(origPath, "\\", "/")
-		normalized := filepath.ToSlash(filepath.Clean(raw))
+	       // Stat the original path (with any backslashes) first
+	       origFull := filepath.Join(g.RootPath, origPath)
+	       info, err := os.Stat(origFull)
+	       if err != nil {
+		       continue
+	       }
+	       if info.IsDir() {
+		       continue // we only add files; directories inferred from files
+	       }
+	       fileCache := cache.GetGlobalFileCache()
+	       if ok, err := fileCache.GetTextFileStatus(origFull, utils.IsTextFile); err != nil || !ok {
+		       continue
+	       }
+
+	       normalized := normPath
 		if filepath.IsAbs(normalized) {
 			if rel, err := filepath.Rel(g.RootPath, normalized); err == nil {
 				normalized = filepath.ToSlash(filepath.Clean(rel))
