@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  xgo-build:
+    image: techknowlogick/xgo:latest
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command: ["/bin/bash", "-c", "xgo --targets=windows/amd64 -out grab ./cmd/grab"]
+    environment:
+      - GOPROXY=https://proxy.golang.org,direct
+      - CGO_ENABLED=1
+    tty: true
