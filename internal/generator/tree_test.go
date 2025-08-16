@@ -21,7 +21,7 @@ func TestBuildTree(t *testing.T) {
 		{"file1.txt", "Content of file1"},
 		{"file2.go", "package main\n\nfunc main() {}"},
 		{"subdir/file3.txt", "Content of file3"},
-		{"subdir/nested/file4.js", "console.log('Hello');"},
+		{"subdir\\nested\\file4.js", "console.log('Hello');"}, // Mixed separators
 	}
 
 	for _, tf := range testFiles {
@@ -41,7 +41,7 @@ func TestBuildTree(t *testing.T) {
 		"file1.txt":              true,
 		"file2.go":               true,
 		"subdir/file3.txt":       true,
-		"subdir/nested/file4.js": true,
+		"subdir\\nested\\file4.js": true, // Mixed separators
 	}
 
 	root := gen.buildTree()
@@ -83,7 +83,8 @@ func TestBuildTree(t *testing.T) {
 	}
 
 	for _, tf := range testFiles {
-		if content, ok := contentMap[tf.path]; ok {
+		normalizedPath := filepath.FromSlash(tf.path)
+		if content, ok := contentMap[normalizedPath]; ok {
 			if content != tf.content {
 				t.Errorf("Expected content of %q to be %q, got %q", tf.path, tf.content, content)
 			}
@@ -91,7 +92,8 @@ func TestBuildTree(t *testing.T) {
 	}
 
 	for _, tf := range testFiles {
-		if !foundFiles[tf.path] {
+		normalizedPath := filepath.FromSlash(tf.path)
+		if !foundFiles[normalizedPath] {
 			t.Errorf("Expected file %q to be in the tree", tf.path)
 		}
 	}

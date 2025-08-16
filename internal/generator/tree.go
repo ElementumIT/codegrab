@@ -31,45 +31,66 @@ func (g *Generator) buildTree() *Node {
 		IsDir:    true,
 		Children: []*Node{},
 	}
-	var paths []string
-	for path, selected := range g.SelectedFiles {
-		if selected {
-			fullPath := filepath.Join(g.RootPath, path)
-			info, err := os.Stat(fullPath)
-			if err != nil {
+
+	var normalizedOrder []string
+	seen := make(map[string]bool)
+	origForNormalized := make(map[string]string)
+
+	for origPath, selected := range g.SelectedFiles {
+		if !selected || origPath == "" {
+			continue
+		}
+
+		// Stat the original path (with any backslashes) first
+		origFull := filepath.Join(g.RootPath, origPath)
+		info, err := os.Stat(origFull)
+		if err != nil {
+			continue
+		}
+		if info.IsDir() {
+			continue // we only add files; directories inferred from files
+		}
+		fileCache := cache.GetGlobalFileCache()
+		if ok, err := fileCache.GetTextFileStatus(origFull, utils.IsTextFile); err != nil || !ok {
+			continue
+		}
+
+		// Build a normalized version for tree structure (treat backslashes as separators everywhere)
+		raw := strings.ReplaceAll(origPath, "\\", "/")
+		normalized := filepath.ToSlash(filepath.Clean(raw))
+		if filepath.IsAbs(normalized) {
+			if rel, err := filepath.Rel(g.RootPath, normalized); err == nil {
+				normalized = filepath.ToSlash(filepath.Clean(rel))
+			}
+		}
+		if strings.HasPrefix(normalized, "../") || normalized == ".." {
+			continue
+		}
+		if seen[normalized] {
+			continue
+		}
+		seen[normalized] = true
+		origForNormalized[normalized] = origPath // preserve original (with backslashes) for Node.Path
+		normalizedOrder = append(normalizedOrder, normalized)
+	}
+
+	sort.Strings(normalizedOrder)
+	dirSet := make(map[string]bool)
+	for _, normalized := range normalizedOrder {
+		parts := strings.Split(normalized, "/")
+		current := root
+		accum := ""
+		for i, part := range parts {
+			if part == "" {
 				continue
 			}
-			if !info.IsDir() {
-				fileCache := cache.GetGlobalFileCache()
-				if ok, err := fileCache.GetTextFileStatus(fullPath, utils.IsTextFile); err != nil || !ok {
-					continue
-				}
+			if accum == "" {
+				accum = part
+			} else {
+				accum = accum + "/" + part
 			}
-			paths = append(paths, path)
-		}
-	}
-	sort.Strings(paths)
-	dirSet := make(map[string]bool)
-	for _, path := range paths {
-		parts := strings.Split(path, string(os.PathSeparator))
-		current := root
-		fullPath := ""
-		for i, part := range parts {
-			fullPath = filepath.Join(fullPath, part)
 			isLast := i == len(parts)-1
 			found := false
-			isDir := !isLast || dirSet[fullPath]
-			if isLast {
-				if !dirSet[fullPath] {
-					if info, err := os.Stat(filepath.Join(g.RootPath, fullPath)); err == nil && info.IsDir() {
-						isDir = true
-						dirSet[fullPath] = true
-					}
-				}
-			} else {
-				isDir = true
-				dirSet[fullPath] = true
-			}
 			for _, child := range current.Children {
 				if child.Name == part {
 					current = child
@@ -78,26 +99,27 @@ func (g *Generator) buildTree() *Node {
 				}
 			}
 			if !found {
-				newNode := &Node{
-					Name:     part,
-					IsDir:    isDir,
-					Children: []*Node{},
-					Path:     fullPath,
+				isDir := !isLast
+				storedPath := accum
+				if isLast { // file node: use original path form
+					storedPath = origForNormalized[normalized]
 				}
+				newNode := &Node{Name: part, IsDir: isDir, Children: []*Node{}, Path: storedPath}
 				current.Children = append(current.Children, newNode)
 				current = newNode
 				if !isDir {
-					fileCache := cache.GetGlobalFileCache()
-					absolutePath := filepath.Join(g.RootPath, fullPath)
-					if err := fileCache.CacheMetadataOnly(absolutePath); err == nil {
+					absolutePath := filepath.Join(g.RootPath, origForNormalized[normalized])
+					if err := cache.GetGlobalFileCache().CacheMetadataOnly(absolutePath); err == nil {
 						newNode.Language = determineLanguage(part)
-					} else {
-						fmt.Fprintf(os.Stderr, "Warning: failed to cache metadata for %s: %v\n", fullPath, err)
 					}
 				}
 			}
+			if !isLast {
+				dirSet[accum] = true
+			}
 		}
 	}
+
 	pruneEmptyDirectories(root)
 	sortTree(root)
 	return root
@@ -166,20 +188,13 @@ type ConcurrentFileCollector struct {
 
 // NewConcurrentFileCollector creates a new concurrent file collector
 func NewConcurrentFileCollector(rootPath string) *ConcurrentFileCollector {
-	return &ConcurrentFileCollector{
-		maxWorkers: runtime.NumCPU(),
-		rootPath:   rootPath,
-	}
+	return &ConcurrentFileCollector{maxWorkers: runtime.NumCPU(), rootPath: rootPath}
 }
 
 // collectFiles intelligently chooses between concurrent and sequential based on file count
 func collectFiles(node *Node, files *[]FileData, rootPath string, secretScanner *secrets.Scanner) {
-	// Count files to determine best approach
 	fileCount := countFiles(node)
-	
-	// Use concurrent approach only for larger file sets where the overhead is worth it
 	const concurrentThreshold = 50
-	
 	if fileCount >= concurrentThreshold {
 		collector := NewConcurrentFileCollector(rootPath)
 		result, err := collector.CollectFilesConcurrent(node, secretScanner)
@@ -190,55 +205,41 @@ func collectFiles(node *Node, files *[]FileData, rootPath string, secretScanner 
 		}
 		*files = result
 	} else {
-		// Use sequential for smaller file sets
 		collectFilesSequential(node, files, rootPath, secretScanner)
 	}
 }
 
-// countFiles recursively counts the number of files in the tree
 func countFiles(node *Node) int {
 	if !node.IsDir {
 		return 1
 	}
-	
 	count := 0
-	for _, child := range node.Children {
-		count += countFiles(child)
+	for _, c := range node.Children {
+		count += countFiles(c)
 	}
 	return count
 }
 
 // CollectFilesConcurrent performs concurrent file content reading
 func (c *ConcurrentFileCollector) CollectFilesConcurrent(node *Node, secretScanner *secrets.Scanner) ([]FileData, error) {
-	// First pass: collect all file work items
 	var workItems []fileWorkItem
 	c.collectWorkItems(node, &workItems)
-
 	if len(workItems) == 0 {
 		return []FileData{}, nil
 	}
-
-	// Create channels for work distribution
 	workQueue := make(chan fileWorkItem, len(workItems))
 	resultQueue := make(chan FileData, len(workItems))
 	errorChan := make(chan error, c.maxWorkers)
-
-	// Populate work queue
 	for _, item := range workItems {
 		workQueue <- item
 	}
 	close(workQueue)
-
 	var wg sync.WaitGroup
 	var firstError error
-
-	// Start worker goroutines
 	for i := 0; i < c.maxWorkers; i++ {
 		wg.Add(1)
 		go c.fileWorker(workQueue, resultQueue, errorChan, &wg)
 	}
-
-	// Start error collector
 	errorDone := make(chan struct{})
 	go func() {
 		defer close(errorDone)
@@ -249,50 +250,28 @@ func (c *ConcurrentFileCollector) CollectFilesConcurrent(node *Node, secretScann
 			fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
 		}
 	}()
-
-	// Wait for workers to complete
-	go func() {
-		wg.Wait()
-		close(resultQueue)
-		close(errorChan)
-	}()
-
-	// Collect results
-	var files []FileData
-	for fileData := range resultQueue {
-		files = append(files, fileData)
+	go func() { wg.Wait(); close(resultQueue); close(errorChan) }()
+	var out []FileData
+	for fd := range resultQueue {
+		out = append(out, fd)
 	}
-
-	// Wait for error collector to finish
 	<-errorDone
-
-	// Sort files to maintain consistent order (by path)
-	sort.Slice(files, func(i, j int) bool {
-		return files[i].Path < files[j].Path
-	})
-
-	return files, firstError
+	sort.Slice(out, func(i, j int) bool { return out[i].Path < out[j].Path })
+	return out, firstError
 }
 
-// collectWorkItems recursively gathers all file work items from the tree
 func (c *ConcurrentFileCollector) collectWorkItems(node *Node, workItems *[]fileWorkItem) {
 	if !node.IsDir {
-		*workItems = append(*workItems, fileWorkItem{
-			node: node,
-			path: filepath.Join(c.rootPath, node.Path),
-		})
+		*workItems = append(*workItems, fileWorkItem{node: node, path: filepath.Join(c.rootPath, node.Path)})
 	}
 	for _, child := range node.Children {
 		c.collectWorkItems(child, workItems)
 	}
 }
 
-// fileWorker processes files from the work queue
 func (c *ConcurrentFileCollector) fileWorker(workQueue <-chan fileWorkItem, resultQueue chan<- FileData, errorChan chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
-
 	fileCache := cache.GetGlobalFileCache()
-
 	for item := range workQueue {
 		content, err := fileCache.GetLazy(item.path)
 		if err != nil {
@@ -302,38 +281,21 @@ func (c *ConcurrentFileCollector) fileWorker(workQueue <-chan fileWorkItem, resu
 			}
 			continue
 		}
-
-		// Update node content for potential tree rendering
 		item.node.Content = content
-
-		// Send result to collector
 		select {
-		case resultQueue <- FileData{
-			Path:     item.node.Path,
-			Content:  content,
-			Language: item.node.Language,
-			Findings: nil, // Will be populated by secret scanner later
-		}:
+		case resultQueue <- FileData{Path: item.node.Path, Content: content, Language: item.node.Language, Findings: nil}:
 		default:
 		}
 	}
 }
 
-// collectFilesSequential is the original sequential implementation as fallback
 func collectFilesSequential(node *Node, files *[]FileData, rootPath string, secretScanner *secrets.Scanner) {
 	if !node.IsDir {
 		fileCache := cache.GetGlobalFileCache()
-		absolutePath := filepath.Join(rootPath, node.Path)
-
-		if content, err := fileCache.GetLazy(absolutePath); err == nil {
+		absolute := filepath.Join(rootPath, node.Path)
+		if content, err := fileCache.GetLazy(absolute); err == nil {
 			node.Content = content
-
-			*files = append(*files, FileData{
-				Path:     node.Path,
-				Content:  content,
-				Language: node.Language,
-				Findings: nil,
-			})
+			*files = append(*files, FileData{Path: node.Path, Content: content, Language: node.Language, Findings: nil})
 		} else {
 			fmt.Fprintf(os.Stderr, "Warning: failed to read file %s: %v\n", node.Path, err)
 		}
@@ -346,7 +308,6 @@ func collectFilesSequential(node *Node, files *[]FileData, rootPath string, secr
 func determineLanguage(filename string) string {
 	ext := strings.ToLower(filepath.Ext(filename))
 	if ext == "" {
-		// Check for special filenames without extensions
 		name := strings.ToLower(filepath.Base(filename))
 		switch name {
 		case "makefile", "dockerfile", "jenkinsfile", "vagrantfile":
@@ -363,119 +324,10 @@ func determineLanguage(filename string) string {
 			return "text"
 		}
 	}
-
 	ext = ext[1:]
-
-	extensionMap := map[string]string{
-		"html":       "html",
-		"htm":        "html",
-		"xhtml":      "html",
-		"css":        "css",
-		"scss":       "scss",
-		"sass":       "sass",
-		"less":       "less",
-		"js":         "javascript",
-		"jsx":        "jsx",
-		"ts":         "typescript",
-		"tsx":        "tsx",
-		"vue":        "vue",
-		"svelte":     "svelte",
-		"go":         "go",
-		"py":         "python",
-		"rb":         "ruby",
-		"php":        "php",
-		"java":       "java",
-		"c":          "c",
-		"h":          "c",
-		"cpp":        "cpp",
-		"cc":         "cpp",
-		"cxx":        "cpp",
-		"hpp":        "cpp",
-		"hxx":        "cpp",
-		"cs":         "csharp",
-		"fs":         "fsharp",
-		"fsx":        "fsharp",
-		"rs":         "rust",
-		"swift":      "swift",
-		"kt":         "kotlin",
-		"kts":        "kotlin",
-		"scala":      "scala",
-		"clj":        "clojure",
-		"cljs":       "clojure",
-		"cljc":       "clojure",
-		"edn":        "clojure",
-		"hs":         "haskell",
-		"lhs":        "haskell",
-		"elm":        "elm",
-		"ex":         "elixir",
-		"exs":        "elixir",
-		"erl":        "erlang",
-		"hrl":        "erlang",
-		"dart":       "dart",
-		"pl":         "perl",
-		"pm":         "perl",
-		"r":          "r",
-		"lua":        "lua",
-		"groovy":     "groovy",
-		"tcl":        "tcl",
-		"m":          "objectivec",
-		"mm":         "objectivec",
-		"d":          "d",
-		"jl":         "julia",
-		"cr":         "crystal",
-		"nim":        "nim",
-		"zig":        "zig",
-		"v":          "v",
-		"sh":         "bash",
-		"bash":       "bash",
-		"zsh":        "bash",
-		"fish":       "fish",
-		"ps1":        "powershell",
-		"psm1":       "powershell",
-		"bat":        "batch",
-		"cmd":        "batch",
-		"awk":        "awk",
-		"json":       "json",
-		"yaml":       "yaml",
-		"yml":        "yaml",
-		"toml":       "toml",
-		"xml":        "xml",
-		"csv":        "csv",
-		"tsv":        "tsv",
-		"ini":        "ini",
-		"conf":       "conf",
-		"cfg":        "conf",
-		"plist":      "xml",
-		"md":         "markdown",
-		"markdown":   "markdown",
-		"rst":        "restructuredtext",
-		"tex":        "latex",
-		"latex":      "latex",
-		"txt":        "text",
-		"adoc":       "asciidoc",
-		"asciidoc":   "asciidoc",
-		"org":        "org",
-		"sql":        "sql",
-		"graphql":    "graphql",
-		"gql":        "graphql",
-		"proto":      "protobuf",
-		"tf":         "terraform",
-		"tfvars":     "terraform",
-		"hcl":        "hcl",
-		"dockerfile": "dockerfile",
-		"lock":       "text",
-		"gradle":     "gradle",
-		"properties": "properties",
-		"diff":       "diff",
-		"patch":      "diff",
-		"svg":        "svg",
-		"log":        "log",
+	mapping := map[string]string{"html": "html", "htm": "html", "xhtml": "html", "css": "css", "scss": "scss", "sass": "sass", "less": "less", "js": "javascript", "jsx": "jsx", "ts": "typescript", "tsx": "tsx", "vue": "vue", "svelte": "svelte", "go": "go", "py": "python", "rb": "ruby", "php": "php", "java": "java", "c": "c", "h": "c", "cpp": "cpp", "cc": "cpp", "cxx": "cpp", "hpp": "cpp", "hxx": "cpp", "cs": "csharp", "fs": "fsharp", "fsx": "fsharp", "rs": "rust", "swift": "swift", "kt": "kotlin", "kts": "kotlin", "scala": "scala", "clj": "clojure", "cljs": "clojure", "cljc": "clojure", "edn": "clojure", "hs": "haskell", "lhs": "haskell", "elm": "elm", "ex": "elixir", "exs": "elixir", "erl": "erlang", "hrl": "erlang", "dart": "dart", "pl": "perl", "pm": "perl", "r": "r", "lua": "lua", "groovy": "groovy", "tcl": "tcl", "m": "objectivec", "mm": "objectivec", "d": "d", "jl": "julia", "cr": "crystal", "nim": "nim", "zig": "zig", "v": "v", "sh": "bash", "bash": "bash", "zsh": "bash", "fish": "fish", "ps1": "powershell", "psm1": "powershell", "bat": "batch", "cmd": "batch", "awk": "awk", "json": "json", "yaml": "yaml", "yml": "yaml", "toml": "toml", "xml": "xml", "csv": "csv", "tsv": "tsv", "ini": "ini", "conf": "conf", "cfg": "conf", "plist": "xml", "md": "markdown", "markdown": "markdown", "rst": "restructuredtext", "tex": "latex", "latex": "latex", "txt": "text", "adoc": "asciidoc", "asciidoc": "asciidoc", "org": "org", "sql": "sql", "graphql": "graphql", "gql": "graphql", "proto": "protobuf", "tf": "terraform", "tfvars": "terraform", "hcl": "hcl", "dockerfile": "dockerfile", "lock": "text", "gradle": "gradle", "properties": "properties", "diff": "diff", "patch": "diff", "svg": "svg", "log": "log"}
+	if lang, ok := mapping[ext]; ok {
+		return lang
 	}
-
-	if language, ok := extensionMap[ext]; ok {
-		return language
-	}
-
-	// If not found, return the extension itself
 	return ext
 }
