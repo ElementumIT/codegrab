@@ -36,29 +36,52 @@ func (g *Generator) buildTree() *Node {
 	seen := make(map[string]bool)
 	origForNormalized := make(map[string]string)
 
+	// DEBUG: Add debug output for Windows troubleshooting
+	if len(g.SelectedFiles) > 0 {
+		fmt.Fprintf(os.Stderr, "DEBUG buildTree: Processing %d selected files, RootPath: %q\n", len(g.SelectedFiles), g.RootPath)
+	}
+
        for origPath, selected := range g.SelectedFiles {
 	       if !selected || origPath == "" {
 		       continue
 	       }
 
+	       // DEBUG: Show what we're processing
+	       fmt.Fprintf(os.Stderr, "DEBUG buildTree: Processing file %q\n", origPath)
+
 	       // Always normalize path to use forward slashes for tree structure
 	       normPath := strings.ReplaceAll(origPath, "\\", "/")
 	       normPath = filepath.ToSlash(filepath.Clean(normPath))
+
+	       // DEBUG: Show normalization result
+	       fmt.Fprintf(os.Stderr, "DEBUG buildTree:   Normalized to %q\n", normPath)
 
 	       // For filesystem access, convert normalized path to OS-specific separators
 	       // This handles Windows-style backslashes correctly on both Windows and Linux
 	       osSpecificPath := filepath.FromSlash(normPath)
 	       origFull := filepath.Join(g.RootPath, osSpecificPath)
+
+	       // DEBUG: Show filesystem path
+	       fmt.Fprintf(os.Stderr, "DEBUG buildTree:   OS-specific: %q, Full: %q\n", osSpecificPath, origFull)
+
 	       info, err := os.Stat(origFull)
 	       if err != nil {
+		       // DEBUG: Show stat error
+		       fmt.Fprintf(os.Stderr, "DEBUG buildTree:   Stat error: %v\n", err)
 		       // If normalized path fails, try the original path as fallback
 		       origFull = filepath.Join(g.RootPath, origPath)
+		       fmt.Fprintf(os.Stderr, "DEBUG buildTree:   Trying fallback: %q\n", origFull)
 		       info, err = os.Stat(origFull)
 		       if err != nil {
+		       	fmt.Fprintf(os.Stderr, "DEBUG buildTree:   Fallback failed: %v\n", err)
 		       	continue
 		       }
+		       fmt.Fprintf(os.Stderr, "DEBUG buildTree:   Fallback SUCCESS\n")
+	       } else {
+		       fmt.Fprintf(os.Stderr, "DEBUG buildTree:   Stat SUCCESS\n")
 	       }
 	       if info.IsDir() {
+		       fmt.Fprintf(os.Stderr, "DEBUG buildTree:   SKIPPING: is directory\n")
 		       continue // we only add files; directories inferred from files
 	       }
 	       fileCache := cache.GetGlobalFileCache()
@@ -81,9 +104,19 @@ func (g *Generator) buildTree() *Node {
 		seen[normalized] = true
 		origForNormalized[normalized] = origPath // preserve original (with backslashes) for Node.Path
 		normalizedOrder = append(normalizedOrder, normalized)
+
+		// DEBUG: Show successful processing
+		fmt.Fprintf(os.Stderr, "DEBUG buildTree:   SUCCESS: Added %q (normalized: %q)\n", origPath, normalized)
 	}
 
 	sort.Strings(normalizedOrder)
+	
+	// DEBUG: Show final processing list
+	fmt.Fprintf(os.Stderr, "DEBUG buildTree: Final processing list (%d items):\n", len(normalizedOrder))
+	for _, norm := range normalizedOrder {
+		fmt.Fprintf(os.Stderr, "DEBUG buildTree:   Will process: %q\n", norm)
+	}
+	
 	dirSet := make(map[string]bool)
 	for _, normalized := range normalizedOrder {
 		parts := strings.Split(normalized, "/")
