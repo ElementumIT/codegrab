@@ -1,0 +1,1468 @@
+=== ENHANCED WINDOWS DEBUG ===
+Number of command line arguments: 4
+Arguments received:
+  Args[0]: "debug_windows_enhanced.exe"
+  Args[1]: "."
+  Args[2]: "-"
+  Args[3]: "output.txt"
+OS: windows
+ARCH: amd64
+Separator: "\\" (\)
+
+=== PATH ANALYSIS ===
+Root path received: "."
+Root path length: 1 characters
+Contains spaces: false
+Contains backslashes: false
+Contains forward slashes: false
+Is absolute path: false
+Absolute path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab"
+NOTE: Path was converted from relative to absolute
+
+=== ROOT PATH CHECK ===
+✅ Root path accessible
+   Is directory: true
+   Size: 4096 bytes
+   Mode: drwxrwxrwx
+
+=== BASIC DIRECTORY READ ===
+✅ Directory readable, found 15 entries
+First 10 entries:
+  dir: .git
+  dir: .github
+  file: .gitignore
+  file: .goreleaser.yml
+  file: LICENSE
+  dir: NotesForDeveloper
+  file: README.md
+  dir: cmd
+  file: debug_tree_windows.exe
+  file: debug_windows_enhanced
+  ... and 5 more entries
+
+=== DETAILED FILESYSTEM WALK ===
+Found dir: ".git"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git"
+  Rel path: ".git"
+  Size: 4096 bytes
+
+Found file: ".git/COMMIT_EDITMSG"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\COMMIT_EDITMSG"
+  Rel path: ".git\\COMMIT_EDITMSG"
+  Size: 65 bytes
+
+Found file: ".git/FETCH_HEAD"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\FETCH_HEAD"
+  Rel path: ".git\\FETCH_HEAD"
+  Size: 235 bytes
+
+Found file: ".git/HEAD"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\HEAD"
+  Rel path: ".git\\HEAD"
+  Size: 21 bytes
+
+Found file: ".git/ORIG_HEAD"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\ORIG_HEAD"
+  Rel path: ".git\\ORIG_HEAD"
+  Size: 41 bytes
+
+Found file: ".git/config"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\config"
+  Rel path: ".git\\config"
+  Size: 474 bytes
+
+Found file: ".git/description"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\description"
+  Rel path: ".git\\description"
+  Size: 73 bytes
+
+Found dir: ".git/hooks"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks"
+  Rel path: ".git\\hooks"
+  Size: 4096 bytes
+
+Found file: ".git/hooks/applypatch-msg.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\applypatch-msg.sample"
+  Rel path: ".git\\hooks\\applypatch-msg.sample"
+  Size: 478 bytes
+
+Found file: ".git/hooks/commit-msg.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\commit-msg.sample"
+  Rel path: ".git\\hooks\\commit-msg.sample"
+  Size: 896 bytes
+
+Found file: ".git/hooks/fsmonitor-watchman.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\fsmonitor-watchman.sample"
+  Rel path: ".git\\hooks\\fsmonitor-watchman.sample"
+  Size: 4726 bytes
+
+Found file: ".git/hooks/post-update.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\post-update.sample"
+  Rel path: ".git\\hooks\\post-update.sample"
+  Size: 189 bytes
+
+Found file: ".git/hooks/pre-applypatch.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\pre-applypatch.sample"
+  Rel path: ".git\\hooks\\pre-applypatch.sample"
+  Size: 424 bytes
+
+Found file: ".git/hooks/pre-commit.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\pre-commit.sample"
+  Rel path: ".git\\hooks\\pre-commit.sample"
+  Size: 1649 bytes
+
+Found file: ".git/hooks/pre-merge-commit.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\pre-merge-commit.sample"
+  Rel path: ".git\\hooks\\pre-merge-commit.sample"
+  Size: 416 bytes
+
+Found file: ".git/hooks/pre-push.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\pre-push.sample"
+  Rel path: ".git\\hooks\\pre-push.sample"
+  Size: 1374 bytes
+
+Found file: ".git/hooks/pre-rebase.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\pre-rebase.sample"
+  Rel path: ".git\\hooks\\pre-rebase.sample"
+  Size: 4898 bytes
+
+Found file: ".git/hooks/pre-receive.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\pre-receive.sample"
+  Rel path: ".git\\hooks\\pre-receive.sample"
+  Size: 544 bytes
+
+Found file: ".git/hooks/prepare-commit-msg.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\prepare-commit-msg.sample"
+  Rel path: ".git\\hooks\\prepare-commit-msg.sample"
+  Size: 1492 bytes
+
+Found file: ".git/hooks/push-to-checkout.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\push-to-checkout.sample"
+  Rel path: ".git\\hooks\\push-to-checkout.sample"
+  Size: 2783 bytes
+
+Found file: ".git/hooks/sendemail-validate.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\sendemail-validate.sample"
+  Rel path: ".git\\hooks\\sendemail-validate.sample"
+  Size: 2308 bytes
+
+Found file: ".git/hooks/update.sample"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\hooks\\update.sample"
+  Rel path: ".git\\hooks\\update.sample"
+  Size: 3650 bytes
+
+Found file: ".git/index"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\index"
+  Rel path: ".git\\index"
+  Size: 8415 bytes
+
+Found dir: ".git/info"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\info"
+  Rel path: ".git\\info"
+  Size: 0 bytes
+
+Found file: ".git/info/exclude"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\info\\exclude"
+  Rel path: ".git\\info\\exclude"
+  Size: 240 bytes
+
+Found dir: ".git/logs"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs"
+  Rel path: ".git\\logs"
+  Size: 0 bytes
+
+Found file: ".git/logs/HEAD"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\HEAD"
+  Rel path: ".git\\logs\\HEAD"
+  Size: 1150 bytes
+
+Found dir: ".git/logs/refs"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs"
+  Rel path: ".git\\logs\\refs"
+  Size: 0 bytes
+
+Found dir: ".git/logs/refs/heads"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs\\heads"
+  Rel path: ".git\\logs\\refs\\heads"
+  Size: 0 bytes
+
+Found file: ".git/logs/refs/heads/FixesForTreeProblemInWindows"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs\\heads\\FixesForTreeProblemInWindows"
+  Rel path: ".git\\logs\\refs\\heads\\FixesForTreeProblemInWindows"
+  Size: 584 bytes
+
+Found file: ".git/logs/refs/heads/main"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs\\heads\\main"
+  Rel path: ".git\\logs\\refs\\heads\\main"
+  Size: 379 bytes
+
+Found dir: ".git/logs/refs/remotes"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs\\remotes"
+  Rel path: ".git\\logs\\refs\\remotes"
+  Size: 0 bytes
+
+Found dir: ".git/logs/refs/remotes/origin"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs\\remotes\\origin"
+  Rel path: ".git\\logs\\refs\\remotes\\origin"
+  Size: 0 bytes
+
+Found file: ".git/logs/refs/remotes/origin/FixesForTreeProblemInWindows"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs\\remotes\\origin\\FixesForTreeProblemInWindows"
+  Rel path: ".git\\logs\\refs\\remotes\\origin\\FixesForTreeProblemInWindows"
+  Size: 476 bytes
+
+Found file: ".git/logs/refs/remotes/origin/HEAD"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs\\remotes\\origin\\HEAD"
+  Rel path: ".git\\logs\\refs\\remotes\\origin\\HEAD"
+  Size: 190 bytes
+
+Found file: ".git/logs/refs/remotes/origin/main"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\logs\\refs\\remotes\\origin\\main"
+  Rel path: ".git\\logs\\refs\\remotes\\origin\\main"
+  Size: 178 bytes
+
+Found dir: ".git/objects"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects"
+  Rel path: ".git\\objects"
+  Size: 4096 bytes
+
+Found dir: ".git/objects/06"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\06"
+  Rel path: ".git\\objects\\06"
+  Size: 0 bytes
+
+Found file: ".git/objects/06/3e2a172b0f047adda75d466e9580af737ca033"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\06\\3e2a172b0f047adda75d466e9580af737ca033"
+  Rel path: ".git\\objects\\06\\3e2a172b0f047adda75d466e9580af737ca033"
+  Size: 2288 bytes
+
+Found dir: ".git/objects/0d"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\0d"
+  Rel path: ".git\\objects\\0d"
+  Size: 0 bytes
+
+Found file: ".git/objects/0d/b3a24f85987b85b2960c52476215d9299706ef"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\0d\\b3a24f85987b85b2960c52476215d9299706ef"
+  Rel path: ".git\\objects\\0d\\b3a24f85987b85b2960c52476215d9299706ef"
+  Size: 124 bytes
+
+Found dir: ".git/objects/0f"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\0f"
+  Rel path: ".git\\objects\\0f"
+  Size: 0 bytes
+
+Found file: ".git/objects/0f/fae8196fb66059d0777e1814bc1ffab3a92166"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\0f\\fae8196fb66059d0777e1814bc1ffab3a92166"
+  Rel path: ".git\\objects\\0f\\fae8196fb66059d0777e1814bc1ffab3a92166"
+  Size: 77 bytes
+
+Found dir: ".git/objects/11"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\11"
+  Rel path: ".git\\objects\\11"
+  Size: 0 bytes
+
+Found file: ".git/objects/11/d75d757be0dd7a64065edeb6962ef2deca7f9a"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\11\\d75d757be0dd7a64065edeb6962ef2deca7f9a"
+  Rel path: ".git\\objects\\11\\d75d757be0dd7a64065edeb6962ef2deca7f9a"
+  Size: 9662290 bytes
+
+Found dir: ".git/objects/26"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\26"
+  Rel path: ".git\\objects\\26"
+  Size: 0 bytes
+
+Found file: ".git/objects/26/2f690f819d1c62098d5c2c9086dd06d0c9a7df"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\26\\2f690f819d1c62098d5c2c9086dd06d0c9a7df"
+  Rel path: ".git\\objects\\26\\2f690f819d1c62098d5c2c9086dd06d0c9a7df"
+  Size: 66 bytes
+
+Found dir: ".git/objects/32"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\32"
+  Rel path: ".git\\objects\\32"
+  Size: 0 bytes
+
+Found file: ".git/objects/32/26a16b6a39afc5c3f8a54d167cc7f1ffeadf71"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\32\\26a16b6a39afc5c3f8a54d167cc7f1ffeadf71"
+  Rel path: ".git\\objects\\32\\26a16b6a39afc5c3f8a54d167cc7f1ffeadf71"
+  Size: 704 bytes
+
+Found dir: ".git/objects/3d"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\3d"
+  Rel path: ".git\\objects\\3d"
+  Size: 0 bytes
+
+Found file: ".git/objects/3d/8fd77ee771513d22d128c3bb01c635dcb49931"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\3d\\8fd77ee771513d22d128c3bb01c635dcb49931"
+  Rel path: ".git\\objects\\3d\\8fd77ee771513d22d128c3bb01c635dcb49931"
+  Size: 260 bytes
+
+Found dir: ".git/objects/3e"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\3e"
+  Rel path: ".git\\objects\\3e"
+  Size: 0 bytes
+
+Found file: ".git/objects/3e/94f1e1aa4bb8f92f245848f44349aee4dff935"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\3e\\94f1e1aa4bb8f92f245848f44349aee4dff935"
+  Rel path: ".git\\objects\\3e\\94f1e1aa4bb8f92f245848f44349aee4dff935"
+  Size: 57 bytes
+
+Found dir: ".git/objects/3f"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\3f"
+  Rel path: ".git\\objects\\3f"
+  Size: 0 bytes
+
+Found file: ".git/objects/3f/657298bfb4eefe7ca65b68a9340dbd81a64ad4"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\3f\\657298bfb4eefe7ca65b68a9340dbd81a64ad4"
+  Rel path: ".git\\objects\\3f\\657298bfb4eefe7ca65b68a9340dbd81a64ad4"
+  Size: 292 bytes
+
+Found dir: ".git/objects/42"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\42"
+  Rel path: ".git\\objects\\42"
+  Size: 0 bytes
+
+Found file: ".git/objects/42/31348f0ec35106eff5c461e2430d297674f308"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\42\\31348f0ec35106eff5c461e2430d297674f308"
+  Rel path: ".git\\objects\\42\\31348f0ec35106eff5c461e2430d297674f308"
+  Size: 251 bytes
+
+Found dir: ".git/objects/45"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\45"
+  Rel path: ".git\\objects\\45"
+  Size: 0 bytes
+
+Found file: ".git/objects/45/44fadd1d84efd99b55ac2ea9216ac74d6769a6"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\45\\44fadd1d84efd99b55ac2ea9216ac74d6769a6"
+  Rel path: ".git\\objects\\45\\44fadd1d84efd99b55ac2ea9216ac74d6769a6"
+  Size: 244 bytes
+
+Found dir: ".git/objects/47"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\47"
+  Rel path: ".git\\objects\\47"
+  Size: 0 bytes
+
+Found file: ".git/objects/47/be018bceb0fff91fd2d6ef5bee229f1acbc5f7"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\47\\be018bceb0fff91fd2d6ef5bee229f1acbc5f7"
+  Rel path: ".git\\objects\\47\\be018bceb0fff91fd2d6ef5bee229f1acbc5f7"
+  Size: 345 bytes
+
+Found dir: ".git/objects/4b"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\4b"
+  Rel path: ".git\\objects\\4b"
+  Size: 0 bytes
+
+Found file: ".git/objects/4b/3e3dcdca8fe1a34ec4f91c54d048b57730d246"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\4b\\3e3dcdca8fe1a34ec4f91c54d048b57730d246"
+  Rel path: ".git\\objects\\4b\\3e3dcdca8fe1a34ec4f91c54d048b57730d246"
+  Size: 260 bytes
+
+Found dir: ".git/objects/50"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\50"
+  Rel path: ".git\\objects\\50"
+  Size: 0 bytes
+
+Found file: ".git/objects/50/e8ec589b1db76966f499cd1b7f3ec68ed41167"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\50\\e8ec589b1db76966f499cd1b7f3ec68ed41167"
+  Rel path: ".git\\objects\\50\\e8ec589b1db76966f499cd1b7f3ec68ed41167"
+  Size: 346 bytes
+
+Found dir: ".git/objects/55"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\55"
+  Rel path: ".git\\objects\\55"
+  Size: 0 bytes
+
+Found file: ".git/objects/55/8d4f80cede7b4011e7b35e3f41e048d12a6432"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\55\\8d4f80cede7b4011e7b35e3f41e048d12a6432"
+  Rel path: ".git\\objects\\55\\8d4f80cede7b4011e7b35e3f41e048d12a6432"
+  Size: 1241 bytes
+
+Found dir: ".git/objects/5e"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\5e"
+  Rel path: ".git\\objects\\5e"
+  Size: 0 bytes
+
+Found file: ".git/objects/5e/fb9bc29c482e023e40e0a2b3b7e49cec842034"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\5e\\fb9bc29c482e023e40e0a2b3b7e49cec842034"
+  Rel path: ".git\\objects\\5e\\fb9bc29c482e023e40e0a2b3b7e49cec842034"
+  Size: 53 bytes
+
+Found dir: ".git/objects/5f"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\5f"
+  Rel path: ".git\\objects\\5f"
+  Size: 0 bytes
+
+Found file: ".git/objects/5f/5946df151dfe519beadb51cfa47eab2208c052"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\5f\\5946df151dfe519beadb51cfa47eab2208c052"
+  Rel path: ".git\\objects\\5f\\5946df151dfe519beadb51cfa47eab2208c052"
+  Size: 198 bytes
+
+Found dir: ".git/objects/6c"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\6c"
+  Rel path: ".git\\objects\\6c"
+  Size: 0 bytes
+
+Found file: ".git/objects/6c/3f6a5d8daf4ade3eb5b69b92bc2cbbc15d126f"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\6c\\3f6a5d8daf4ade3eb5b69b92bc2cbbc15d126f"
+  Rel path: ".git\\objects\\6c\\3f6a5d8daf4ade3eb5b69b92bc2cbbc15d126f"
+  Size: 915 bytes
+
+Found dir: ".git/objects/73"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\73"
+  Rel path: ".git\\objects\\73"
+  Size: 0 bytes
+
+Found file: ".git/objects/73/0652f2eeca6cf5da1b124984306f0fc651377b"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\73\\0652f2eeca6cf5da1b124984306f0fc651377b"
+  Rel path: ".git\\objects\\73\\0652f2eeca6cf5da1b124984306f0fc651377b"
+  Size: 248 bytes
+
+Found dir: ".git/objects/75"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\75"
+  Rel path: ".git\\objects\\75"
+  Size: 0 bytes
+
+Found file: ".git/objects/75/8ff03cdc2034446406e4634a9e5fb0d212bcc9"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\75\\8ff03cdc2034446406e4634a9e5fb0d212bcc9"
+  Rel path: ".git\\objects\\75\\8ff03cdc2034446406e4634a9e5fb0d212bcc9"
+  Size: 171 bytes
+
+Found dir: ".git/objects/8a"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\8a"
+  Rel path: ".git\\objects\\8a"
+  Size: 0 bytes
+
+Found file: ".git/objects/8a/d740e4d2bb118a77d9e17e433a1d78c6b5b04d"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\8a\\d740e4d2bb118a77d9e17e433a1d78c6b5b04d"
+  Rel path: ".git\\objects\\8a\\d740e4d2bb118a77d9e17e433a1d78c6b5b04d"
+  Size: 292 bytes
+
+Found dir: ".git/objects/8b"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\8b"
+  Rel path: ".git\\objects\\8b"
+  Size: 0 bytes
+
+Found file: ".git/objects/8b/d8939c8dfc847f9005401ad0de47990abb5392"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\8b\\d8939c8dfc847f9005401ad0de47990abb5392"
+  Rel path: ".git\\objects\\8b\\d8939c8dfc847f9005401ad0de47990abb5392"
+  Size: 4004 bytes
+
+Found dir: ".git/objects/8d"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\8d"
+  Rel path: ".git\\objects\\8d"
+  Size: 0 bytes
+
+Found file: ".git/objects/8d/3974a5acc52865cd9af8477857d984615432aa"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\8d\\3974a5acc52865cd9af8477857d984615432aa"
+  Rel path: ".git\\objects\\8d\\3974a5acc52865cd9af8477857d984615432aa"
+  Size: 4001 bytes
+
+Found dir: ".git/objects/97"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\97"
+  Rel path: ".git\\objects\\97"
+  Size: 0 bytes
+
+Found file: ".git/objects/97/c9511f6111005c8defb1b0747c24155bd9b200"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\97\\c9511f6111005c8defb1b0747c24155bd9b200"
+  Rel path: ".git\\objects\\97\\c9511f6111005c8defb1b0747c24155bd9b200"
+  Size: 4006 bytes
+
+Found dir: ".git/objects/a4"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\a4"
+  Rel path: ".git\\objects\\a4"
+  Size: 0 bytes
+
+Found file: ".git/objects/a4/0d48ef58e90bf7fc1655c1d4564252791940ad"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\a4\\0d48ef58e90bf7fc1655c1d4564252791940ad"
+  Rel path: ".git\\objects\\a4\\0d48ef58e90bf7fc1655c1d4564252791940ad"
+  Size: 551 bytes
+
+Found dir: ".git/objects/ae"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\ae"
+  Rel path: ".git\\objects\\ae"
+  Size: 0 bytes
+
+Found file: ".git/objects/ae/947edb6f755dcdb52ed6a8a50159eebf677bae"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\ae\\947edb6f755dcdb52ed6a8a50159eebf677bae"
+  Rel path: ".git\\objects\\ae\\947edb6f755dcdb52ed6a8a50159eebf677bae"
+  Size: 84 bytes
+
+Found dir: ".git/objects/b0"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\b0"
+  Rel path: ".git\\objects\\b0"
+  Size: 0 bytes
+
+Found file: ".git/objects/b0/55a57bea773c5fdeb75e0d8c5f882f4f51a577"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\b0\\55a57bea773c5fdeb75e0d8c5f882f4f51a577"
+  Rel path: ".git\\objects\\b0\\55a57bea773c5fdeb75e0d8c5f882f4f51a577"
+  Size: 919 bytes
+
+Found dir: ".git/objects/b2"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\b2"
+  Rel path: ".git\\objects\\b2"
+  Size: 0 bytes
+
+Found file: ".git/objects/b2/abdac384f111c1a8a518e05b963a3bb2541659"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\b2\\abdac384f111c1a8a518e05b963a3bb2541659"
+  Rel path: ".git\\objects\\b2\\abdac384f111c1a8a518e05b963a3bb2541659"
+  Size: 54 bytes
+
+Found file: ".git/objects/b2/b2ee389341f62131e0cf7a7227de47fc9db7fb"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\b2\\b2ee389341f62131e0cf7a7227de47fc9db7fb"
+  Rel path: ".git\\objects\\b2\\b2ee389341f62131e0cf7a7227de47fc9db7fb"
+  Size: 53 bytes
+
+Found dir: ".git/objects/be"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\be"
+  Rel path: ".git\\objects\\be"
+  Size: 0 bytes
+
+Found file: ".git/objects/be/4dd15721e40eb08e287696da85db9bb4da9b6f"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\be\\4dd15721e40eb08e287696da85db9bb4da9b6f"
+  Rel path: ".git\\objects\\be\\4dd15721e40eb08e287696da85db9bb4da9b6f"
+  Size: 180 bytes
+
+Found dir: ".git/objects/c4"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\c4"
+  Rel path: ".git\\objects\\c4"
+  Size: 0 bytes
+
+Found file: ".git/objects/c4/af4d6f326617a7e3922bc30fa9498801ee5a03"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\c4\\af4d6f326617a7e3922bc30fa9498801ee5a03"
+  Rel path: ".git\\objects\\c4\\af4d6f326617a7e3922bc30fa9498801ee5a03"
+  Size: 360 bytes
+
+Found dir: ".git/objects/d3"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\d3"
+  Rel path: ".git\\objects\\d3"
+  Size: 0 bytes
+
+Found file: ".git/objects/d3/40c45a0e92e9432199cda3b354cb46213ad1b9"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\d3\\40c45a0e92e9432199cda3b354cb46213ad1b9"
+  Rel path: ".git\\objects\\d3\\40c45a0e92e9432199cda3b354cb46213ad1b9"
+  Size: 36 bytes
+
+Found dir: ".git/objects/d7"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\d7"
+  Rel path: ".git\\objects\\d7"
+  Size: 0 bytes
+
+Found file: ".git/objects/d7/a8a6dd5230114c320b4a36c0a710e4b0499b1d"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\d7\\a8a6dd5230114c320b4a36c0a710e4b0499b1d"
+  Rel path: ".git\\objects\\d7\\a8a6dd5230114c320b4a36c0a710e4b0499b1d"
+  Size: 191 bytes
+
+Found dir: ".git/objects/e2"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\e2"
+  Rel path: ".git\\objects\\e2"
+  Size: 0 bytes
+
+Found file: ".git/objects/e2/171b622c1f0ece1fe5f4bc474d284eacc9ab50"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\e2\\171b622c1f0ece1fe5f4bc474d284eacc9ab50"
+  Rel path: ".git\\objects\\e2\\171b622c1f0ece1fe5f4bc474d284eacc9ab50"
+  Size: 244 bytes
+
+Found dir: ".git/objects/e6"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\e6"
+  Rel path: ".git\\objects\\e6"
+  Size: 0 bytes
+
+Found file: ".git/objects/e6/9de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\e6\\9de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  Rel path: ".git\\objects\\e6\\9de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  Size: 15 bytes
+
+Found dir: ".git/objects/e9"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\e9"
+  Rel path: ".git\\objects\\e9"
+  Size: 0 bytes
+
+Found file: ".git/objects/e9/230d361f073de1b503c475fb05e61a8243664b"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\e9\\230d361f073de1b503c475fb05e61a8243664b"
+  Rel path: ".git\\objects\\e9\\230d361f073de1b503c475fb05e61a8243664b"
+  Size: 478 bytes
+
+Found dir: ".git/objects/f9"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\f9"
+  Rel path: ".git\\objects\\f9"
+  Size: 0 bytes
+
+Found file: ".git/objects/f9/241046e56fa434d7808cfbe848c05c5d888727"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\f9\\241046e56fa434d7808cfbe848c05c5d888727"
+  Rel path: ".git\\objects\\f9\\241046e56fa434d7808cfbe848c05c5d888727"
+  Size: 184 bytes
+
+Found dir: ".git/objects/fd"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\fd"
+  Rel path: ".git\\objects\\fd"
+  Size: 0 bytes
+
+Found file: ".git/objects/fd/319ea522acc90b9641a9e87baea21700560fb9"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\fd\\319ea522acc90b9641a9e87baea21700560fb9"
+  Rel path: ".git\\objects\\fd\\319ea522acc90b9641a9e87baea21700560fb9"
+  Size: 377 bytes
+
+Found dir: ".git/objects/ff"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\ff"
+  Rel path: ".git\\objects\\ff"
+  Size: 0 bytes
+
+Found file: ".git/objects/ff/8048503ddce44ded88dd284e9a1f1cf8990a45"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\ff\\8048503ddce44ded88dd284e9a1f1cf8990a45"
+  Rel path: ".git\\objects\\ff\\8048503ddce44ded88dd284e9a1f1cf8990a45"
+  Size: 1259 bytes
+
+Found dir: ".git/objects/info"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\info"
+  Rel path: ".git\\objects\\info"
+  Size: 0 bytes
+
+Found dir: ".git/objects/pack"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\pack"
+  Rel path: ".git\\objects\\pack"
+  Size: 0 bytes
+
+Found file: ".git/objects/pack/pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.idx"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\pack\\pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.idx"
+  Rel path: ".git\\objects\\pack\\pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.idx"
+  Size: 17172 bytes
+
+Found file: ".git/objects/pack/pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.pack"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\pack\\pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.pack"
+  Rel path: ".git\\objects\\pack\\pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.pack"
+  Size: 230441 bytes
+
+Found file: ".git/objects/pack/pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.rev"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\objects\\pack\\pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.rev"
+  Rel path: ".git\\objects\\pack\\pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.rev"
+  Size: 2352 bytes
+
+Found file: ".git/packed-refs"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\packed-refs"
+  Rel path: ".git\\packed-refs"
+  Size: 112 bytes
+
+Found dir: ".git/refs"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs"
+  Rel path: ".git\\refs"
+  Size: 0 bytes
+
+Found dir: ".git/refs/heads"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\heads"
+  Rel path: ".git\\refs\\heads"
+  Size: 0 bytes
+
+Found file: ".git/refs/heads/FixesForTreeProblemInWindows"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\heads\\FixesForTreeProblemInWindows"
+  Rel path: ".git\\refs\\heads\\FixesForTreeProblemInWindows"
+  Size: 41 bytes
+
+Found file: ".git/refs/heads/main"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\heads\\main"
+  Rel path: ".git\\refs\\heads\\main"
+  Size: 41 bytes
+
+Found dir: ".git/refs/remotes"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\remotes"
+  Rel path: ".git\\refs\\remotes"
+  Size: 0 bytes
+
+Found dir: ".git/refs/remotes/origin"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\remotes\\origin"
+  Rel path: ".git\\refs\\remotes\\origin"
+  Size: 0 bytes
+
+Found file: ".git/refs/remotes/origin/FixesForTreeProblemInWindows"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\remotes\\origin\\FixesForTreeProblemInWindows"
+  Rel path: ".git\\refs\\remotes\\origin\\FixesForTreeProblemInWindows"
+  Size: 41 bytes
+
+Found file: ".git/refs/remotes/origin/HEAD"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\remotes\\origin\\HEAD"
+  Rel path: ".git\\refs\\remotes\\origin\\HEAD"
+  Size: 30 bytes
+
+Found file: ".git/refs/remotes/origin/main"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\remotes\\origin\\main"
+  Rel path: ".git\\refs\\remotes\\origin\\main"
+  Size: 41 bytes
+
+Found dir: ".git/refs/tags"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\refs\\tags"
+  Rel path: ".git\\refs\\tags"
+  Size: 0 bytes
+
+Found file: ".git/tgitchangelist"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\tgitchangelist"
+  Rel path: ".git\\tgitchangelist"
+  Size: 0 bytes
+
+Found file: ".git/tortoisegit.data"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\tortoisegit.data"
+  Rel path: ".git\\tortoisegit.data"
+  Size: 12138 bytes
+
+Found file: ".git/tortoisegit.index"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\tortoisegit.index"
+  Rel path: ".git\\tortoisegit.index"
+  Size: 964 bytes
+
+Found dir: ".github"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.github"
+  Rel path: ".github"
+  Size: 0 bytes
+
+Found dir: ".github/chatmodes"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.github\\chatmodes"
+  Rel path: ".github\\chatmodes"
+  Size: 0 bytes
+
+Found file: ".github/chatmodes/4.1-Beast.chatmode.md"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.github\\chatmodes\\4.1-Beast.chatmode.md"
+  Rel path: ".github\\chatmodes\\4.1-Beast.chatmode.md"
+  Size: 9325 bytes
+
+Found dir: ".github/workflows"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.github\\workflows"
+  Rel path: ".github\\workflows"
+  Size: 0 bytes
+
+Found file: ".github/workflows/release.yml"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.github\\workflows\\release.yml"
+  Rel path: ".github\\workflows\\release.yml"
+  Size: 864 bytes
+
+Found file: ".gitignore"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.gitignore"
+  Rel path: ".gitignore"
+  Size: 70 bytes
+
+Found file: ".goreleaser.yml"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.goreleaser.yml"
+  Rel path: ".goreleaser.yml"
+  Size: 2144 bytes
+
+Found file: "LICENSE"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\LICENSE"
+  Rel path: "LICENSE"
+  Size: 1094 bytes
+
+Found dir: "NotesForDeveloper"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\NotesForDeveloper"
+  Rel path: "NotesForDeveloper"
+  Size: 0 bytes
+
+Found dir: "NotesForDeveloper/SubFolder"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\NotesForDeveloper\\SubFolder"
+  Rel path: "NotesForDeveloper\\SubFolder"
+  Size: 0 bytes
+
+Found file: "NotesForDeveloper/SubFolder/test.txt"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\NotesForDeveloper\\SubFolder\\test.txt"
+  Rel path: "NotesForDeveloper\\SubFolder\\test.txt"
+  Size: 0 bytes
+
+Found dir: "NotesForDeveloper/SubFolder2"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\NotesForDeveloper\\SubFolder2"
+  Rel path: "NotesForDeveloper\\SubFolder2"
+  Size: 0 bytes
+
+Found file: "NotesForDeveloper/SubFolder2/test2.txt"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\NotesForDeveloper\\SubFolder2\\test2.txt"
+  Rel path: "NotesForDeveloper\\SubFolder2\\test2.txt"
+  Size: 0 bytes
+
+Found file: "README.md"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\README.md"
+  Rel path: "README.md"
+  Size: 18937 bytes
+
+Found dir: "cmd"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\cmd"
+  Rel path: "cmd"
+  Size: 0 bytes
+
+Found dir: "cmd/grab"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\cmd\\grab"
+  Rel path: "cmd\\grab"
+  Size: 0 bytes
+
+Found file: "cmd/grab/main.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\cmd\\grab\\main.go"
+  Rel path: "cmd\\grab\\main.go"
+  Size: 9974 bytes
+
+Found file: "debug_tree_windows.exe"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\debug_tree_windows.exe"
+  Rel path: "debug_tree_windows.exe"
+  Size: 2606080 bytes
+
+Found file: "debug_windows_enhanced"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\debug_windows_enhanced"
+  Rel path: "debug_windows_enhanced"
+  Size: 37598 bytes
+
+Found file: "debug_windows_enhanced.exe"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\debug_windows_enhanced.exe"
+  Rel path: "debug_windows_enhanced.exe"
+  Size: 2647040 bytes
+
+Found file: "go.mod"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\go.mod"
+  Rel path: "go.mod"
+  Size: 3144 bytes
+
+Found file: "go.sum"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\go.sum"
+  Rel path: "go.sum"
+  Size: 14477 bytes
+
+Found file: "grab_debug.exe"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\grab_debug.exe"
+  Rel path: "grab_debug.exe"
+  Size: 15737856 bytes
+
+Found dir: "internal"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal"
+  Rel path: "internal"
+  Size: 4096 bytes
+
+Found dir: "internal/cache"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\cache"
+  Rel path: "internal\\cache"
+  Size: 0 bytes
+
+Found file: "internal/cache/filecache.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\cache\\filecache.go"
+  Rel path: "internal\\cache\\filecache.go"
+  Size: 5428 bytes
+
+Found file: "internal/cache/filecache_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\cache\\filecache_test.go"
+  Rel path: "internal\\cache\\filecache_test.go"
+  Size: 10312 bytes
+
+Found file: "internal/cache/manager.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\cache\\manager.go"
+  Rel path: "internal\\cache\\manager.go"
+  Size: 476 bytes
+
+Found dir: "internal/dependencies"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies"
+  Rel path: "internal\\dependencies"
+  Size: 4096 bytes
+
+Found file: "internal/dependencies/dependencies_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\dependencies_test.go"
+  Rel path: "internal\\dependencies\\dependencies_test.go"
+  Size: 912 bytes
+
+Found file: "internal/dependencies/go_module.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\go_module.go"
+  Rel path: "internal\\dependencies\\go_module.go"
+  Size: 815 bytes
+
+Found file: "internal/dependencies/go_module_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\go_module_test.go"
+  Rel path: "internal\\dependencies\\go_module_test.go"
+  Size: 2471 bytes
+
+Found file: "internal/dependencies/go_resolver.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\go_resolver.go"
+  Rel path: "internal\\dependencies\\go_resolver.go"
+  Size: 3943 bytes
+
+Found file: "internal/dependencies/go_resolver_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\go_resolver_test.go"
+  Rel path: "internal\\dependencies\\go_resolver_test.go"
+  Size: 6637 bytes
+
+Found file: "internal/dependencies/js_resolver.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\js_resolver.go"
+  Rel path: "internal\\dependencies\\js_resolver.go"
+  Size: 4185 bytes
+
+Found file: "internal/dependencies/js_resolver_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\js_resolver_test.go"
+  Rel path: "internal\\dependencies\\js_resolver_test.go"
+  Size: 6661 bytes
+
+Found file: "internal/dependencies/py_resolver.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\py_resolver.go"
+  Rel path: "internal\\dependencies\\py_resolver.go"
+  Size: 3885 bytes
+
+Found file: "internal/dependencies/py_resolver_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\py_resolver_test.go"
+  Rel path: "internal\\dependencies\\py_resolver_test.go"
+  Size: 5178 bytes
+
+Found file: "internal/dependencies/resolver.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\dependencies\\resolver.go"
+  Rel path: "internal\\dependencies\\resolver.go"
+  Size: 2036 bytes
+
+Found dir: "internal/filesystem"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\filesystem"
+  Rel path: "internal\\filesystem"
+  Size: 4096 bytes
+
+Found file: "internal/filesystem/benchmark_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\filesystem\\benchmark_test.go"
+  Rel path: "internal\\filesystem\\benchmark_test.go"
+  Size: 9535 bytes
+
+Found file: "internal/filesystem/filter.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\filesystem\\filter.go"
+  Rel path: "internal\\filesystem\\filter.go"
+  Size: 2307 bytes
+
+Found file: "internal/filesystem/filter_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\filesystem\\filter_test.go"
+  Rel path: "internal\\filesystem\\filter_test.go"
+  Size: 3646 bytes
+
+Found file: "internal/filesystem/gitignore.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\filesystem\\gitignore.go"
+  Rel path: "internal\\filesystem\\gitignore.go"
+  Size: 1635 bytes
+
+Found file: "internal/filesystem/gitignore_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\filesystem\\gitignore_test.go"
+  Rel path: "internal\\filesystem\\gitignore_test.go"
+  Size: 2151 bytes
+
+Found file: "internal/filesystem/walker.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\filesystem\\walker.go"
+  Rel path: "internal\\filesystem\\walker.go"
+  Size: 5574 bytes
+
+Found file: "internal/filesystem/walker_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\filesystem\\walker_test.go"
+  Rel path: "internal\\filesystem\\walker_test.go"
+  Size: 5523 bytes
+
+Found dir: "internal/generator"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator"
+  Rel path: "internal\\generator"
+  Size: 4096 bytes
+
+Found file: "internal/generator/format.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\format.go"
+  Rel path: "internal\\generator\\format.go"
+  Size: 712 bytes
+
+Found file: "internal/generator/format_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\format_test.go"
+  Rel path: "internal\\generator\\format_test.go"
+  Size: 971 bytes
+
+Found dir: "internal/generator/formats"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\formats"
+  Rel path: "internal\\generator\\formats"
+  Size: 0 bytes
+
+Found file: "internal/generator/formats/formats_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\formats\\formats_test.go"
+  Rel path: "internal\\generator\\formats\\formats_test.go"
+  Size: 6290 bytes
+
+Found file: "internal/generator/formats/markdown.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\formats\\markdown.go"
+  Rel path: "internal\\generator\\formats\\markdown.go"
+  Size: 1384 bytes
+
+Found file: "internal/generator/formats/registry.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\formats\\registry.go"
+  Rel path: "internal\\generator\\formats\\registry.go"
+  Size: 916 bytes
+
+Found file: "internal/generator/formats/text.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\formats\\text.go"
+  Rel path: "internal\\generator\\formats\\text.go"
+  Size: 1606 bytes
+
+Found file: "internal/generator/formats/xml.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\formats\\xml.go"
+  Rel path: "internal\\generator\\formats\\xml.go"
+  Size: 4822 bytes
+
+Found file: "internal/generator/generator.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\generator.go"
+  Rel path: "internal\\generator\\generator.go"
+  Size: 6913 bytes
+
+Found file: "internal/generator/generator_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\generator_test.go"
+  Rel path: "internal\\generator\\generator_test.go"
+  Size: 6395 bytes
+
+Found file: "internal/generator/tree.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\tree.go"
+  Rel path: "internal\\generator\\tree.go"
+  Size: 12553 bytes
+
+Found file: "internal/generator/tree_benchmark_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\tree_benchmark_test.go"
+  Rel path: "internal\\generator\\tree_benchmark_test.go"
+  Size: 6592 bytes
+
+Found file: "internal/generator/tree_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\generator\\tree_test.go"
+  Rel path: "internal\\generator\\tree_test.go"
+  Size: 7996 bytes
+
+Found dir: "internal/git"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\git"
+  Rel path: "internal\\git"
+  Size: 0 bytes
+
+Found file: "internal/git/git.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\git\\git.go"
+  Rel path: "internal\\git\\git.go"
+  Size: 2817 bytes
+
+Found file: "internal/git/git_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\git\\git_test.go"
+  Rel path: "internal\\git\\git_test.go"
+  Size: 3001 bytes
+
+Found dir: "internal/model"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model"
+  Rel path: "internal\\model"
+  Size: 4096 bytes
+
+Found file: "internal/model/display.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\display.go"
+  Rel path: "internal\\model\\display.go"
+  Size: 2797 bytes
+
+Found file: "internal/model/display_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\display_test.go"
+  Rel path: "internal\\model\\display_test.go"
+  Size: 3139 bytes
+
+Found file: "internal/model/init_update.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\init_update.go"
+  Rel path: "internal\\model\\init_update.go"
+  Size: 20611 bytes
+
+Found file: "internal/model/integration_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\integration_test.go"
+  Rel path: "internal\\model\\integration_test.go"
+  Size: 3581 bytes
+
+Found file: "internal/model/model.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\model.go"
+  Rel path: "internal\\model\\model.go"
+  Size: 6863 bytes
+
+Found file: "internal/model/model_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\model_test.go"
+  Rel path: "internal\\model\\model_test.go"
+  Size: 9853 bytes
+
+Found file: "internal/model/search.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\search.go"
+  Rel path: "internal\\model\\search.go"
+  Size: 2207 bytes
+
+Found file: "internal/model/search_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\search_test.go"
+  Rel path: "internal\\model\\search_test.go"
+  Size: 5862 bytes
+
+Found file: "internal/model/selection.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\selection.go"
+  Rel path: "internal\\model\\selection.go"
+  Size: 8246 bytes
+
+Found file: "internal/model/token_cache.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\token_cache.go"
+  Rel path: "internal\\model\\token_cache.go"
+  Size: 3367 bytes
+
+Found file: "internal/model/token_cache_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\token_cache_test.go"
+  Rel path: "internal\\model\\token_cache_test.go"
+  Size: 4666 bytes
+
+Found file: "internal/model/view.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\view.go"
+  Rel path: "internal\\model\\view.go"
+  Size: 20634 bytes
+
+Found file: "internal/model/view_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\model\\view_test.go"
+  Rel path: "internal\\model\\view_test.go"
+  Size: 6580 bytes
+
+Found dir: "internal/secrets"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\secrets"
+  Rel path: "internal\\secrets"
+  Size: 0 bytes
+
+Found file: "internal/secrets/scanner.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\secrets\\scanner.go"
+  Rel path: "internal\\secrets\\scanner.go"
+  Size: 4936 bytes
+
+Found file: "internal/secrets/scanner_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\secrets\\scanner_test.go"
+  Rel path: "internal\\secrets\\scanner_test.go"
+  Size: 8011 bytes
+
+Found dir: "internal/ui"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui"
+  Rel path: "internal\\ui"
+  Size: 0 bytes
+
+Found file: "internal/ui/help.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\help.go"
+  Rel path: "internal\\ui\\help.go"
+  Size: 4366 bytes
+
+Found file: "internal/ui/panel_constants.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\panel_constants.go"
+  Rel path: "internal\\ui\\panel_constants.go"
+  Size: 646 bytes
+
+Found file: "internal/ui/styles.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\styles.go"
+  Rel path: "internal\\ui\\styles.go"
+  Size: 10509 bytes
+
+Found dir: "internal/ui/themes"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes"
+  Rel path: "internal\\ui\\themes"
+  Size: 4096 bytes
+
+Found file: "internal/ui/themes/catppuccin_frappe.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\catppuccin_frappe.go"
+  Rel path: "internal\\ui\\themes\\catppuccin_frappe.go"
+  Size: 1723 bytes
+
+Found file: "internal/ui/themes/catppuccin_latte.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\catppuccin_latte.go"
+  Rel path: "internal\\ui\\themes\\catppuccin_latte.go"
+  Size: 1709 bytes
+
+Found file: "internal/ui/themes/catppuccin_macchiato.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\catppuccin_macchiato.go"
+  Rel path: "internal\\ui\\themes\\catppuccin_macchiato.go"
+  Size: 1753 bytes
+
+Found file: "internal/ui/themes/catppuccin_mocha.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\catppuccin_mocha.go"
+  Rel path: "internal\\ui\\themes\\catppuccin_mocha.go"
+  Size: 1709 bytes
+
+Found file: "internal/ui/themes/dracula.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\dracula.go"
+  Rel path: "internal\\ui\\themes\\dracula.go"
+  Size: 1537 bytes
+
+Found file: "internal/ui/themes/nord.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\nord.go"
+  Rel path: "internal\\ui\\themes\\nord.go"
+  Size: 1606 bytes
+
+Found file: "internal/ui/themes/rose_pine.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\rose_pine.go"
+  Rel path: "internal\\ui\\themes\\rose_pine.go"
+  Size: 1641 bytes
+
+Found file: "internal/ui/themes/rose_pine_dawn.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\rose_pine_dawn.go"
+  Rel path: "internal\\ui\\themes\\rose_pine_dawn.go"
+  Size: 1685 bytes
+
+Found file: "internal/ui/themes/rose_pine_moon.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\rose_pine_moon.go"
+  Rel path: "internal\\ui\\themes\\rose_pine_moon.go"
+  Size: 1685 bytes
+
+Found file: "internal/ui/themes/theme.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\ui\\themes\\theme.go"
+  Rel path: "internal\\ui\\themes\\theme.go"
+  Size: 2471 bytes
+
+Found dir: "internal/utils"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\utils"
+  Rel path: "internal\\utils"
+  Size: 4096 bytes
+
+Found file: "internal/utils/patterns.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\utils\\patterns.go"
+  Rel path: "internal\\utils\\patterns.go"
+  Size: 1824 bytes
+
+Found file: "internal/utils/patterns_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\utils\\patterns_test.go"
+  Rel path: "internal\\utils\\patterns_test.go"
+  Size: 7311 bytes
+
+Found file: "internal/utils/system.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\utils\\system.go"
+  Rel path: "internal\\utils\\system.go"
+  Size: 4111 bytes
+
+Found file: "internal/utils/system_test.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\utils\\system_test.go"
+  Rel path: "internal\\utils\\system_test.go"
+  Size: 2072 bytes
+
+Found file: "internal/utils/time.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\utils\\time.go"
+  Rel path: "internal\\utils\\time.go"
+  Size: 197 bytes
+
+Found file: "internal/utils/tokens.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\utils\\tokens.go"
+  Rel path: "internal\\utils\\tokens.go"
+  Size: 369 bytes
+
+Found file: "internal/utils/version.go"
+  Raw path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\internal\\utils\\version.go"
+  Rel path: "internal\\utils\\version.go"
+  Size: 157 bytes
+
+=== WALK SUMMARY ===
+✅ Walk completed successfully
+Total directories found: 74
+Total files found: 163
+Walk errors: 0
+
+=== TREE STRUCTURE ANALYSIS ===
+File: ".git/COMMIT_EDITMSG" (depth: 1)
+File: ".git/FETCH_HEAD" (depth: 1)
+File: ".git/HEAD" (depth: 1)
+File: ".git/ORIG_HEAD" (depth: 1)
+File: ".git/config" (depth: 1)
+File: ".git/description" (depth: 1)
+File: ".git/hooks/applypatch-msg.sample" (depth: 2)
+File: ".git/hooks/commit-msg.sample" (depth: 2)
+File: ".git/hooks/fsmonitor-watchman.sample" (depth: 2)
+File: ".git/hooks/post-update.sample" (depth: 2)
+File: ".git/hooks/pre-applypatch.sample" (depth: 2)
+File: ".git/hooks/pre-commit.sample" (depth: 2)
+File: ".git/hooks/pre-merge-commit.sample" (depth: 2)
+File: ".git/hooks/pre-push.sample" (depth: 2)
+File: ".git/hooks/pre-rebase.sample" (depth: 2)
+File: ".git/hooks/pre-receive.sample" (depth: 2)
+File: ".git/hooks/prepare-commit-msg.sample" (depth: 2)
+File: ".git/hooks/push-to-checkout.sample" (depth: 2)
+File: ".git/hooks/sendemail-validate.sample" (depth: 2)
+File: ".git/hooks/update.sample" (depth: 2)
+File: ".git/index" (depth: 1)
+File: ".git/info/exclude" (depth: 2)
+File: ".git/logs/HEAD" (depth: 2)
+File: ".git/logs/refs/heads/FixesForTreeProblemInWindows" (depth: 4)
+File: ".git/logs/refs/heads/main" (depth: 4)
+File: ".git/logs/refs/remotes/origin/FixesForTreeProblemInWindows" (depth: 5)
+File: ".git/logs/refs/remotes/origin/HEAD" (depth: 5)
+File: ".git/logs/refs/remotes/origin/main" (depth: 5)
+File: ".git/objects/06/3e2a172b0f047adda75d466e9580af737ca033" (depth: 3)
+File: ".git/objects/0d/b3a24f85987b85b2960c52476215d9299706ef" (depth: 3)
+File: ".git/objects/0f/fae8196fb66059d0777e1814bc1ffab3a92166" (depth: 3)
+File: ".git/objects/11/d75d757be0dd7a64065edeb6962ef2deca7f9a" (depth: 3)
+File: ".git/objects/26/2f690f819d1c62098d5c2c9086dd06d0c9a7df" (depth: 3)
+File: ".git/objects/32/26a16b6a39afc5c3f8a54d167cc7f1ffeadf71" (depth: 3)
+File: ".git/objects/3d/8fd77ee771513d22d128c3bb01c635dcb49931" (depth: 3)
+File: ".git/objects/3e/94f1e1aa4bb8f92f245848f44349aee4dff935" (depth: 3)
+File: ".git/objects/3f/657298bfb4eefe7ca65b68a9340dbd81a64ad4" (depth: 3)
+File: ".git/objects/42/31348f0ec35106eff5c461e2430d297674f308" (depth: 3)
+File: ".git/objects/45/44fadd1d84efd99b55ac2ea9216ac74d6769a6" (depth: 3)
+File: ".git/objects/47/be018bceb0fff91fd2d6ef5bee229f1acbc5f7" (depth: 3)
+File: ".git/objects/4b/3e3dcdca8fe1a34ec4f91c54d048b57730d246" (depth: 3)
+File: ".git/objects/50/e8ec589b1db76966f499cd1b7f3ec68ed41167" (depth: 3)
+File: ".git/objects/55/8d4f80cede7b4011e7b35e3f41e048d12a6432" (depth: 3)
+File: ".git/objects/5e/fb9bc29c482e023e40e0a2b3b7e49cec842034" (depth: 3)
+File: ".git/objects/5f/5946df151dfe519beadb51cfa47eab2208c052" (depth: 3)
+File: ".git/objects/6c/3f6a5d8daf4ade3eb5b69b92bc2cbbc15d126f" (depth: 3)
+File: ".git/objects/73/0652f2eeca6cf5da1b124984306f0fc651377b" (depth: 3)
+File: ".git/objects/75/8ff03cdc2034446406e4634a9e5fb0d212bcc9" (depth: 3)
+File: ".git/objects/8a/d740e4d2bb118a77d9e17e433a1d78c6b5b04d" (depth: 3)
+File: ".git/objects/8b/d8939c8dfc847f9005401ad0de47990abb5392" (depth: 3)
+File: ".git/objects/8d/3974a5acc52865cd9af8477857d984615432aa" (depth: 3)
+File: ".git/objects/97/c9511f6111005c8defb1b0747c24155bd9b200" (depth: 3)
+File: ".git/objects/a4/0d48ef58e90bf7fc1655c1d4564252791940ad" (depth: 3)
+File: ".git/objects/ae/947edb6f755dcdb52ed6a8a50159eebf677bae" (depth: 3)
+File: ".git/objects/b0/55a57bea773c5fdeb75e0d8c5f882f4f51a577" (depth: 3)
+File: ".git/objects/b2/abdac384f111c1a8a518e05b963a3bb2541659" (depth: 3)
+File: ".git/objects/b2/b2ee389341f62131e0cf7a7227de47fc9db7fb" (depth: 3)
+File: ".git/objects/be/4dd15721e40eb08e287696da85db9bb4da9b6f" (depth: 3)
+File: ".git/objects/c4/af4d6f326617a7e3922bc30fa9498801ee5a03" (depth: 3)
+File: ".git/objects/d3/40c45a0e92e9432199cda3b354cb46213ad1b9" (depth: 3)
+File: ".git/objects/d7/a8a6dd5230114c320b4a36c0a710e4b0499b1d" (depth: 3)
+File: ".git/objects/e2/171b622c1f0ece1fe5f4bc474d284eacc9ab50" (depth: 3)
+File: ".git/objects/e6/9de29bb2d1d6434b8b29ae775ad8c2e48c5391" (depth: 3)
+File: ".git/objects/e9/230d361f073de1b503c475fb05e61a8243664b" (depth: 3)
+File: ".git/objects/f9/241046e56fa434d7808cfbe848c05c5d888727" (depth: 3)
+File: ".git/objects/fd/319ea522acc90b9641a9e87baea21700560fb9" (depth: 3)
+File: ".git/objects/ff/8048503ddce44ded88dd284e9a1f1cf8990a45" (depth: 3)
+File: ".git/objects/pack/pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.idx" (depth: 3)
+File: ".git/objects/pack/pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.pack" (depth: 3)
+File: ".git/objects/pack/pack-3db56fd42b642ab11ea0e49e4514e70ce8e1efda.rev" (depth: 3)
+File: ".git/packed-refs" (depth: 1)
+File: ".git/refs/heads/FixesForTreeProblemInWindows" (depth: 3)
+File: ".git/refs/heads/main" (depth: 3)
+File: ".git/refs/remotes/origin/FixesForTreeProblemInWindows" (depth: 4)
+File: ".git/refs/remotes/origin/HEAD" (depth: 4)
+File: ".git/refs/remotes/origin/main" (depth: 4)
+File: ".git/tgitchangelist" (depth: 1)
+File: ".git/tortoisegit.data" (depth: 1)
+File: ".git/tortoisegit.index" (depth: 1)
+File: ".github/chatmodes/4.1-Beast.chatmode.md" (depth: 2)
+File: ".github/workflows/release.yml" (depth: 2)
+File: ".gitignore" (depth: 0)
+File: ".goreleaser.yml" (depth: 0)
+File: "LICENSE" (depth: 0)
+File: "NotesForDeveloper/SubFolder/test.txt" (depth: 2)
+File: "NotesForDeveloper/SubFolder2/test2.txt" (depth: 2)
+File: "README.md" (depth: 0)
+File: "cmd/grab/main.go" (depth: 2)
+File: "debug_tree_windows.exe" (depth: 0)
+File: "debug_windows_enhanced" (depth: 0)
+File: "debug_windows_enhanced.exe" (depth: 0)
+File: "go.mod" (depth: 0)
+File: "go.sum" (depth: 0)
+File: "grab_debug.exe" (depth: 0)
+File: "internal/cache/filecache.go" (depth: 2)
+File: "internal/cache/filecache_test.go" (depth: 2)
+File: "internal/cache/manager.go" (depth: 2)
+File: "internal/dependencies/dependencies_test.go" (depth: 2)
+File: "internal/dependencies/go_module.go" (depth: 2)
+File: "internal/dependencies/go_module_test.go" (depth: 2)
+File: "internal/dependencies/go_resolver.go" (depth: 2)
+File: "internal/dependencies/go_resolver_test.go" (depth: 2)
+File: "internal/dependencies/js_resolver.go" (depth: 2)
+File: "internal/dependencies/js_resolver_test.go" (depth: 2)
+File: "internal/dependencies/py_resolver.go" (depth: 2)
+File: "internal/dependencies/py_resolver_test.go" (depth: 2)
+File: "internal/dependencies/resolver.go" (depth: 2)
+File: "internal/filesystem/benchmark_test.go" (depth: 2)
+File: "internal/filesystem/filter.go" (depth: 2)
+File: "internal/filesystem/filter_test.go" (depth: 2)
+File: "internal/filesystem/gitignore.go" (depth: 2)
+File: "internal/filesystem/gitignore_test.go" (depth: 2)
+File: "internal/filesystem/walker.go" (depth: 2)
+File: "internal/filesystem/walker_test.go" (depth: 2)
+File: "internal/generator/format.go" (depth: 2)
+File: "internal/generator/format_test.go" (depth: 2)
+File: "internal/generator/formats/formats_test.go" (depth: 3)
+File: "internal/generator/formats/markdown.go" (depth: 3)
+File: "internal/generator/formats/registry.go" (depth: 3)
+File: "internal/generator/formats/text.go" (depth: 3)
+File: "internal/generator/formats/xml.go" (depth: 3)
+File: "internal/generator/generator.go" (depth: 2)
+File: "internal/generator/generator_test.go" (depth: 2)
+File: "internal/generator/tree.go" (depth: 2)
+File: "internal/generator/tree_benchmark_test.go" (depth: 2)
+File: "internal/generator/tree_test.go" (depth: 2)
+File: "internal/git/git.go" (depth: 2)
+File: "internal/git/git_test.go" (depth: 2)
+File: "internal/model/display.go" (depth: 2)
+File: "internal/model/display_test.go" (depth: 2)
+File: "internal/model/init_update.go" (depth: 2)
+File: "internal/model/integration_test.go" (depth: 2)
+File: "internal/model/model.go" (depth: 2)
+File: "internal/model/model_test.go" (depth: 2)
+File: "internal/model/search.go" (depth: 2)
+File: "internal/model/search_test.go" (depth: 2)
+File: "internal/model/selection.go" (depth: 2)
+File: "internal/model/token_cache.go" (depth: 2)
+File: "internal/model/token_cache_test.go" (depth: 2)
+File: "internal/model/view.go" (depth: 2)
+File: "internal/model/view_test.go" (depth: 2)
+File: "internal/secrets/scanner.go" (depth: 2)
+File: "internal/secrets/scanner_test.go" (depth: 2)
+File: "internal/ui/help.go" (depth: 2)
+File: "internal/ui/panel_constants.go" (depth: 2)
+File: "internal/ui/styles.go" (depth: 2)
+File: "internal/ui/themes/catppuccin_frappe.go" (depth: 3)
+File: "internal/ui/themes/catppuccin_latte.go" (depth: 3)
+File: "internal/ui/themes/catppuccin_macchiato.go" (depth: 3)
+File: "internal/ui/themes/catppuccin_mocha.go" (depth: 3)
+File: "internal/ui/themes/dracula.go" (depth: 3)
+File: "internal/ui/themes/nord.go" (depth: 3)
+File: "internal/ui/themes/rose_pine.go" (depth: 3)
+File: "internal/ui/themes/rose_pine_dawn.go" (depth: 3)
+File: "internal/ui/themes/rose_pine_moon.go" (depth: 3)
+File: "internal/ui/themes/theme.go" (depth: 3)
+File: "internal/utils/patterns.go" (depth: 2)
+File: "internal/utils/patterns_test.go" (depth: 2)
+File: "internal/utils/system.go" (depth: 2)
+File: "internal/utils/system_test.go" (depth: 2)
+File: "internal/utils/time.go" (depth: 2)
+File: "internal/utils/tokens.go" (depth: 2)
+File: "internal/utils/version.go" (depth: 2)
+
+Tree structure prediction:
+  Root level files: 10
+  Nested files: 153
+  Maximum depth: 5
+✅ Expected tree structure with 5 levels of nesting
+
+=== PATH PROCESSING TEST (buildTree logic) ===
+
+--- Testing file: ".git/COMMIT_EDITMSG" ---
+  1. After normalization: ".git/COMMIT_EDITMSG"
+  2. OS-specific path: ".git\\COMMIT_EDITMSG"
+  3. Full path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\COMMIT_EDITMSG"
+  4. ✅ Stat succeeded
+  7. File info: size=65, isDir=false
+  8. Path parts: [.git COMMIT_EDITMSG]
+  9. Tree depth: 1
+  🔍 This file WILL appear in the tree
+
+--- Testing file: ".git/FETCH_HEAD" ---
+  1. After normalization: ".git/FETCH_HEAD"
+  2. OS-specific path: ".git\\FETCH_HEAD"
+  3. Full path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\FETCH_HEAD"
+  4. ✅ Stat succeeded
+  7. File info: size=235, isDir=false
+  8. Path parts: [.git FETCH_HEAD]
+  9. Tree depth: 1
+  🔍 This file WILL appear in the tree
+
+--- Testing file: ".git/HEAD" ---
+  1. After normalization: ".git/HEAD"
+  2. OS-specific path: ".git\\HEAD"
+  3. Full path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\HEAD"
+  4. ✅ Stat succeeded
+  7. File info: size=21, isDir=false
+  8. Path parts: [.git HEAD]
+  9. Tree depth: 1
+  🔍 This file WILL appear in the tree
+
+--- Testing file: ".git/ORIG_HEAD" ---
+  1. After normalization: ".git/ORIG_HEAD"
+  2. OS-specific path: ".git\\ORIG_HEAD"
+  3. Full path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\ORIG_HEAD"
+  4. ✅ Stat succeeded
+  7. File info: size=41, isDir=false
+  8. Path parts: [.git ORIG_HEAD]
+  9. Tree depth: 1
+  🔍 This file WILL appear in the tree
+
+--- Testing file: ".git/config" ---
+  1. After normalization: ".git/config"
+  2. OS-specific path: ".git\\config"
+  3. Full path: "D:\\Users\\bolges\\Documents\\Elementum\\Elementum Code\\zzz moved to wsl - codegrab\\.git\\config"
+  4. ✅ Stat succeeded
+  7. File info: size=474, isDir=false
+  8. Path parts: [.git config]
+  9. Tree depth: 1
+  🔍 This file WILL appear in the tree
+... (testing first 5 files only)
+
+=== RECOMMENDATIONS ===
+✅ Your directory structure should display as a tree.
+   If codegrab still shows a flat tree, the issue is elsewhere.
+
+=== NEXT STEPS ===
+1. Run grab_debug.exe on this same directory
+2. Look for 'DEBUG buildTree:' messages in the output
+3. Share both outputs for analysis
+
+=== END ENHANCED DEBUG ===
