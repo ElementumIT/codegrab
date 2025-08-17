@@ -49,6 +49,8 @@
 
 ## Cross-Compiling for Windows from WSL
 
+**Update**: Native Windows compilation is now supported with stub dependency resolvers. However, you can still cross-compile from WSL to get a Windows executable with the same limitations.
+
 To build a Windows executable from WSL, follow these steps:
 
 1. **Install MinGW-w64 (Windows cross-compiler toolchain)**
@@ -70,10 +72,10 @@ To build a Windows executable from WSL, follow these steps:
    go build -v -o grab.exe ./cmd/grab
    ```
 
-4. **Troubleshooting Windows build**
-   - If you see errors about missing headers, make sure `mingw-w64` is installed and `CC` is set correctly.
-   - If you see CGO or go-tree-sitter errors, you may need to vendor grammars or use a compatible fork. See project README for advanced fixes.
-   - If you get 'undefined: Node' or 'build constraints exclude all Go files', this is a go-tree-sitter limitation on Windows targets. You may need to remove or replace the dependency for full Windows support.
+4. **Windows Build Behavior**
+   - The Windows build will automatically use stub dependency resolvers
+   - Advanced dependency resolution (`--deps` flag) will return empty results
+   - All other features work normally (file selection, output generation, etc.)
 
 ## Troubleshooting
 - If you get errors about missing headers or libraries, double-check that `build-essential` and `gcc` are installed.
