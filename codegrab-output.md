@@ -1,34 +1,34 @@
 # Project Structure
 
 ```
-test_project/
+windows_test/
 ├── subdir/
 │   ├── nested/
-│   │   └── file3.txt
+│   │   └── file3.js
 │   └── file2.txt
 └── file1.txt
 ```
 
 # Project Files
 
-## File: `subdir/nested/file3.txt`
+## File: `subdir/nested/file3.js`
 
-```text
-file3 content
+```javascript
+file3
 
 ```
 
 ## File: `subdir/file2.txt`
 
 ```text
-file2 content
+file2
 
 ```
 
 ## File: `file1.txt`
 
 ```text
-file1 content
+file1
 
 ```
 

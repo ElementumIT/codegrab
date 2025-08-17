@@ -41,15 +41,22 @@ func (g *Generator) buildTree() *Node {
 		       continue
 	       }
 
-	       // Always normalize path to use forward slashes
+	       // Always normalize path to use forward slashes for tree structure
 	       normPath := strings.ReplaceAll(origPath, "\\", "/")
 	       normPath = filepath.ToSlash(filepath.Clean(normPath))
 
-	       // Stat the original path (with any backslashes) first
-	       origFull := filepath.Join(g.RootPath, origPath)
+	       // For filesystem access, convert normalized path to OS-specific separators
+	       // This handles Windows-style backslashes correctly on both Windows and Linux
+	       osSpecificPath := filepath.FromSlash(normPath)
+	       origFull := filepath.Join(g.RootPath, osSpecificPath)
 	       info, err := os.Stat(origFull)
 	       if err != nil {
-		       continue
+		       // If normalized path fails, try the original path as fallback
+		       origFull = filepath.Join(g.RootPath, origPath)
+		       info, err = os.Stat(origFull)
+		       if err != nil {
+		       	continue
+		       }
 	       }
 	       if info.IsDir() {
 		       continue // we only add files; directories inferred from files
@@ -110,8 +117,16 @@ func (g *Generator) buildTree() *Node {
 				current.Children = append(current.Children, newNode)
 				current = newNode
 				if !isDir {
-					absolutePath := filepath.Join(g.RootPath, origForNormalized[normalized])
-					if err := cache.GetGlobalFileCache().CacheMetadataOnly(absolutePath); err == nil {
+					// Use normalized path for filesystem operations, with fallback
+					osSpecificPath := filepath.FromSlash(origForNormalized[normalized])
+					absolutePath := filepath.Join(g.RootPath, osSpecificPath)
+					if err := cache.GetGlobalFileCache().CacheMetadataOnly(absolutePath); err != nil {
+						// Try fallback with original path
+						absolutePath = filepath.Join(g.RootPath, origForNormalized[normalized])
+						if err := cache.GetGlobalFileCache().CacheMetadataOnly(absolutePath); err == nil {
+							newNode.Language = determineLanguage(part)
+						}
+					} else {
 						newNode.Language = determineLanguage(part)
 					}
 				}
