@@ -2,7 +2,11 @@
 *.log
 *.prof
 *.pprof
+*.exe
 bin/
 dist/
 perf_results/
 /grab
+codegrab_fixed
+test_tree_debug
+graba.exe
